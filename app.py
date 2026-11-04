@@ -4,19 +4,48 @@ import sqlite3
 import secrets
 from functools import wraps
 
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import (
+    Flask, render_template, request, redirect,
+    url_for, session, flash, abort
+)
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from database import connect, create_tables
 
 app = Flask(__name__)
-
 app.secret_key = os.environ.get(
     "FLASK_SECRET_KEY", "local-development-only-change-me"
 )
 
 with app.app_context():
     create_tables()
+
+
+def csrf_token():
+    if "_csrf_token" not in session:
+        session["_csrf_token"] = secrets.token_hex(32)
+    return session["_csrf_token"]
+
+
+app.jinja_env.globals["csrf_token"] = csrf_token
+
+
+@app.before_request
+def protect_forms():
+    if request.method == "POST":
+        expected = session.get("_csrf_token", "")
+        provided = request.form.get("_csrf_token", "")
+
+        if not expected or not secrets.compare_digest(expected, provided):
+            abort(400, description="Nieprawidłowy token formularza.")
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if "user_id" not in session:
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated
 
 
 def admin_required(f):
@@ -36,7 +65,6 @@ def admin_required(f):
             return "Brak uprawnień administratora", 403
 
         return f(*args, **kwargs)
-
     return decorated
 
 
@@ -57,14 +85,12 @@ def inject_settings():
         is_admin = bool(user and user["is_admin"] == 1)
 
     db.close()
-    return dict(settings=settings, is_admin=is_admin)
+    return {"settings": settings, "is_admin": is_admin}
 
 
 @app.route("/")
+@login_required
 def index():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
     db = connect()
 
     clubs = db.execute(
@@ -97,8 +123,8 @@ def index():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        username = request.form["username"].strip()
-        password = request.form["password"]
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
 
         if not username or not password:
             flash("Wypełnij wszystkie pola.")
@@ -112,7 +138,7 @@ def register():
                 (username, generate_password_hash(password))
             )
             db.commit()
-            flash("Konto zostało utworzone!")
+            flash("Konto utworzone!")
             return redirect(url_for("login"))
 
         except sqlite3.IntegrityError:
@@ -127,8 +153,8 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"].strip()
-        password = request.form["password"]
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
 
         db = connect()
         user = db.execute(
@@ -155,11 +181,9 @@ def logout():
 
 
 @app.route("/add_club", methods=["POST"])
+@login_required
 def add_club():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
-    name = request.form["name"].strip()
+    name = request.form.get("name", "").strip()
 
     if name:
         db = connect()
@@ -174,12 +198,10 @@ def add_club():
 
 
 @app.route("/add_player", methods=["POST"])
+@login_required
 def add_player():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
-    name = request.form["name"].strip()
-    position = request.form["position"]
+    name = request.form.get("name", "").strip()
+    position = request.form.get("position", "")
     age = request.form.get("age", type=int)
     club_id = request.form.get("club_id", type=int)
 
@@ -190,10 +212,7 @@ def add_player():
         (club_id, session["user_id"])
     ).fetchone()
 
-    if (
-        name and position in ("BR", "OB", "PO", "NA")
-        and age is not None and 15 <= age <= 50 and club
-    ):
+    if name and position and age is not None and club:
         db.execute("""
             INSERT INTO players (name, position, age, club_id)
             VALUES (?, ?, ?, ?)
@@ -205,10 +224,8 @@ def add_player():
 
 
 @app.route("/delete_player/<int:player_id>", methods=["POST"])
+@login_required
 def delete_player(player_id):
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
     db = connect()
 
     db.execute("""
@@ -225,11 +242,9 @@ def delete_player(player_id):
 
 
 @app.route("/add_league", methods=["POST"])
+@login_required
 def add_league():
-    if "user_id" not in session:
-        return redirect(url_for("login"))
-
-    name = request.form["name"].strip()
+    name = request.form.get("name", "").strip()
 
     if name:
         db = connect()
@@ -251,7 +266,7 @@ def admin():
     db = connect()
 
     users = db.execute(
-        "SELECT id, username, is_admin FROM users"
+        "SELECT id, username, is_admin FROM users ORDER BY id"
     ).fetchall()
 
     clubs = db.execute("""
@@ -278,6 +293,45 @@ def admin():
     )
 
 
+# NADAWANIE I ODBIERANIE ADMINA
+
+@app.route("/admin/user/<int:user_id>/toggle-admin", methods=["POST"])
+@admin_required
+def toggle_admin(user_id):
+    if user_id == session["user_id"]:
+        flash("Nie możesz odebrać admina samemu sobie.")
+        return redirect(url_for("admin"))
+
+    db = connect()
+
+    user = db.execute(
+        "SELECT id, username, is_admin FROM users WHERE id = ?",
+        (user_id,)
+    ).fetchone()
+
+    if user is None:
+        db.close()
+        flash("Nie znaleziono użytkownika.")
+        return redirect(url_for("admin"))
+
+    new_status = 0 if user["is_admin"] == 1 else 1
+
+    db.execute(
+        "UPDATE users SET is_admin = ? WHERE id = ?",
+        (new_status, user_id)
+    )
+
+    db.commit()
+    db.close()
+
+    if new_status == 1:
+        flash("Nadano administratora użytkownikowi " + user["username"])
+    else:
+        flash("Odebrano administratora użytkownikowi " + user["username"])
+
+    return redirect(url_for("admin"))
+
+
 @app.route("/admin/settings", methods=["POST"])
 @admin_required
 def admin_settings():
@@ -288,22 +342,16 @@ def admin_settings():
         flash("Wypełnij wszystkie pola.")
         return redirect(url_for("admin"))
 
-    if len(site_name) > 80 or len(welcome_text) > 200:
-        flash("Podany tekst jest za długi.")
-        return redirect(url_for("admin"))
-
     db = connect()
-
     db.execute("""
         UPDATE settings
         SET site_name = ?, welcome_text = ?
         WHERE id = 1
     """, (site_name, welcome_text))
-
     db.commit()
     db.close()
 
-    flash("Zapisano ustawienia strony.")
+    flash("Zapisano ustawienia.")
     return redirect(url_for("admin"))
 
 
@@ -313,19 +361,15 @@ def admin_edit_club(club_id):
     name = request.form.get("name", "").strip()
     budget = request.form.get("budget", type=int)
 
-    if name and len(name) <= 80 and budget is not None and budget >= 0:
+    if name and budget is not None and budget >= 0:
         db = connect()
-
-        db.execute("""
-            UPDATE clubs SET name = ?, budget = ?
-            WHERE id = ?
-        """, (name, budget, club_id))
-
+        db.execute(
+            "UPDATE clubs SET name = ?, budget = ? WHERE id = ?",
+            (name, budget, club_id)
+        )
         db.commit()
         db.close()
         flash("Zaktualizowano klub.")
-    else:
-        flash("Nieprawidłowe dane klubu.")
 
     return redirect(url_for("admin"))
 
@@ -336,76 +380,66 @@ def admin_edit_player(player_id):
     name = request.form.get("name", "").strip()
     rating = request.form.get("rating", type=int)
 
-    if name and len(name) <= 100 and rating is not None and 1 <= rating <= 99:
+    if name and rating is not None and 1 <= rating <= 99:
         db = connect()
-
-        db.execute("""
-            UPDATE players SET name = ?, rating = ?
-            WHERE id = ?
-        """, (name, rating, player_id))
-
+        db.execute(
+            "UPDATE players SET name = ?, rating = ? WHERE id = ?",
+            (name, rating, player_id)
+        )
         db.commit()
         db.close()
         flash("Zaktualizowano zawodnika.")
-    else:
-        flash("Nieprawidłowe dane zawodnika.")
 
     return redirect(url_for("admin"))
 
 
-# JEDNORAZOWA AKTYWACJA ADMINISTRATORA
+# JEDNORAZOWA AKTYWACJA PIERWSZEGO ADMINA
 
 @app.route("/setup-admin", methods=["GET", "POST"])
+@login_required
 def setup_admin():
+    token = os.environ.get("ADMIN_SETUP_TOKEN", "")
+
+    if not token:
+        return "Aktywacja administratora jest wyłączona.", 403
+
     if request.method == "GET":
         return """
-        <!DOCTYPE html>
         <html lang="pl">
         <head>
             <meta charset="UTF-8">
             <title>Aktywacja administratora</title>
         </head>
         <body style="background:#0b1018;color:white;
-                     font-family:Arial;text-align:center;
-                     padding:80px 20px;">
+                     font-family:Arial;text-align:center;padding:80px">
             <h1>Football Manager</h1>
             <h2>Aktywacja administratora</h2>
             <form method="POST">
+                <input type="hidden" name="_csrf_token" value="TOKEN">
                 <input type="password" name="token"
-                       placeholder="Sekret administratora"
-                       required
-                       style="padding:12px;width:260px;">
-                <button type="submit"
-                        style="padding:12px;background:#19e66d;
-                               border:0;cursor:pointer;">
-                    Aktywuj
-                </button>
+                       placeholder="Sekret administratora" required>
+                <button type="submit">Aktywuj</button>
             </form>
         </body>
         </html>
-        """
+        """.replace("TOKEN", csrf_token())
 
-    token = os.environ.get("ADMIN_SETUP_TOKEN", "")
     provided = request.form.get("token", "")
 
-    if not token or not secrets.compare_digest(token, provided):
-        return "Nieprawidłowy sekret administratora", 403
+    if not secrets.compare_digest(token, provided):
+        return "Nieprawidłowy sekret.", 403
 
     db = connect()
-    cursor = db.execute(
-        "UPDATE users SET is_admin = 1 WHERE username = ?",
-        ("Szyxme",)
+
+    db.execute(
+        "UPDATE users SET is_admin = 1 WHERE id = ?",
+        (session["user_id"],)
     )
+
     db.commit()
     db.close()
 
-    if cursor.rowcount == 0:
-        return "Nie znaleziono konta Szyxme", 404
-
-    return """
-    <h2>Administrator aktywowany!</h2>
-    <a href="/admin">Przejdź do panelu administratora</a>
-    """
+    return redirect(url_for("admin"))
 
 
 if __name__ == "__main__":
