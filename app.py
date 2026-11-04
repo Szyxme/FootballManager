@@ -8,7 +8,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from database import connect, create_tables
 
-app = Flask(__name__)
+with app.app_context():
+    create_tables()
 app.secret_key = os.environ.get(
     "FLASK_SECRET_KEY", "local-development-only-change-me"
 )
