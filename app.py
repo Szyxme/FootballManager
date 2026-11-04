@@ -355,7 +355,25 @@ def admin_edit_player(player_id):
 
     return redirect(url_for("admin"))
 
+@app.route("/setup-admin", methods=["POST"])
+def setup_admin():
+    import secrets
 
+    token = os.environ.get("ADMIN_SETUP_TOKEN", "")
+    provided = request.headers.get("X-Setup-Token", "")
+
+    if not token or not secrets.compare_digest(token, provided):
+        return "Brak dostępu", 403
+
+    db = connect()
+    db.execute(
+        "UPDATE users SET is_admin = 1 WHERE username = ?",
+        ("Szyxme",)
+    )
+    db.commit()
+    db.close()
+
+    return "Uprawnienia administratora zostały zaktualizowane."
 if __name__ == "__main__":
     create_tables()
     app.run(debug=True)
