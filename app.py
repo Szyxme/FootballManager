@@ -1,11 +1,11 @@
 
 import os
 import sqlite3
+import secrets
 from functools import wraps
 
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
-
 
 from database import connect, create_tables
 
@@ -17,7 +17,6 @@ app.secret_key = os.environ.get(
 
 with app.app_context():
     create_tables()
-
 
 
 def admin_required(f):
@@ -55,11 +54,9 @@ def inject_settings():
             "SELECT is_admin FROM users WHERE id = ?",
             (session["user_id"],)
         ).fetchone()
-
         is_admin = bool(user and user["is_admin"] == 1)
 
     db.close()
-
     return dict(settings=settings, is_admin=is_admin)
 
 
@@ -355,25 +352,61 @@ def admin_edit_player(player_id):
 
     return redirect(url_for("admin"))
 
-@app.route("/setup-admin", methods=["POST"])
+
+# JEDNORAZOWA AKTYWACJA ADMINISTRATORA
+
+@app.route("/setup-admin", methods=["GET", "POST"])
 def setup_admin():
-    import secrets
+    if request.method == "GET":
+        return """
+        <!DOCTYPE html>
+        <html lang="pl">
+        <head>
+            <meta charset="UTF-8">
+            <title>Aktywacja administratora</title>
+        </head>
+        <body style="background:#0b1018;color:white;
+                     font-family:Arial;text-align:center;
+                     padding:80px 20px;">
+            <h1>Football Manager</h1>
+            <h2>Aktywacja administratora</h2>
+            <form method="POST">
+                <input type="password" name="token"
+                       placeholder="Sekret administratora"
+                       required
+                       style="padding:12px;width:260px;">
+                <button type="submit"
+                        style="padding:12px;background:#19e66d;
+                               border:0;cursor:pointer;">
+                    Aktywuj
+                </button>
+            </form>
+        </body>
+        </html>
+        """
 
     token = os.environ.get("ADMIN_SETUP_TOKEN", "")
-    provided = request.headers.get("X-Setup-Token", "")
+    provided = request.form.get("token", "")
 
     if not token or not secrets.compare_digest(token, provided):
-        return "Brak dostępu", 403
+        return "Nieprawidłowy sekret administratora", 403
 
     db = connect()
-    db.execute(
+    cursor = db.execute(
         "UPDATE users SET is_admin = 1 WHERE username = ?",
         ("Szyxme",)
     )
     db.commit()
     db.close()
 
-    return "Uprawnienia administratora zostały zaktualizowane."
+    if cursor.rowcount == 0:
+        return "Nie znaleziono konta Szyxme", 404
+
+    return """
+    <h2>Administrator aktywowany!</h2>
+    <a href="/admin">Przejdź do panelu administratora</a>
+    """
+
+
 if __name__ == "__main__":
-    create_tables()
     app.run(debug=True)
