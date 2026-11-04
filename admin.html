@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrator | {{ settings.site_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="admin-page">
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <div class="admin-logo">
+            <div class="admin-logo-icon">FM</div>
+            <div>
+                <strong>FOOTBALL</strong>
+                <span>ADMIN PANEL</span>
+            </div>
+        </div>
+
+        <p class="admin-menu-title">ADMINISTRACJA</p>
+
+        <nav class="admin-navigation">
+            <a href="#overview">◈ Panel główny</a>
+            <a href="#settings">⚙ Ustawienia strony</a>
+            <a href="#clubs">⬡ Zarządzanie klubami</a>
+            <a href="#players">♙ Zarządzanie zawodnikami</a>
+            <a href="#users">♧ Użytkownicy</a>
+        </nav>
+
+        <div class="admin-sidebar-bottom">
+            <a href="{{ url_for('index') }}">← Powrót do aplikacji</a>
+            <a href="{{ url_for('logout') }}">Wyloguj się</a>
+        </div>
+    </aside>
+
+    <div class="admin-main">
+
+        <header class="admin-topbar">
+            <div>
+                <span>FOOTBALL MANAGER / ADMIN</span>
+                <h1>Panel administratora</h1>
+            </div>
+            <div class="admin-account">
+                <span class="admin-role">ADMIN</span>
+                <strong>{{ session.username }}</strong>
+            </div>
+        </header>
+
+        <main class="admin-content">
+
+            {% with messages = get_flashed_messages() %}
+                {% for message in messages %}
+                    <div class="admin-alert">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <section id="overview" class="admin-welcome">
+                <span>CENTRUM ADMINISTRACJI</span>
+                <h2>Witaj, {{ session.username }}!</h2>
+                <p>
+                    Zarządzaj ustawieniami aplikacji,
+                    klubami, zawodnikami i przeglądaj użytkowników.
+                </p>
+            </section>
+
+            <div class="admin-stats">
+                <div class="admin-stat">
+                    <span>UŻYTKOWNICY</span>
+                    <strong>{{ users|length }}</strong>
+                    <small>Zarejestrowane konta</small>
+                </div>
+
+                <div class="admin-stat">
+                    <span>KLUBY</span>
+                    <strong>{{ clubs|length }}</strong>
+                    <small>Wszystkie kluby</small>
+                </div>
+
+                <div class="admin-stat">
+                    <span>ZAWODNICY</span>
+                    <strong>{{ players|length }}</strong>
+                    <small>Wszyscy piłkarze</small>
+                </div>
+            </div>
+
+            <section class="admin-card" id="settings">
+                <div class="admin-section-heading">
+                    <span>01 / PERSONALIZACJA</span>
+                    <h2>Ustawienia strony</h2>
+                    <p>Zmień nazwę aplikacji i tekst powitalny.</p>
+                </div>
+
+                <form action="{{ url_for('admin_settings') }}" method="POST">
+                    <label for="site-name">Nazwa aplikacji</label>
+                    <input id="site-name" type="text" name="site_name"
+                           value="{{ settings.site_name }}"
+                           maxlength="80" required>
+
+                    <label for="welcome-text">Tekst powitalny</label>
+                    <input id="welcome-text" type="text" name="welcome_text"
+                           value="{{ settings.welcome_text }}"
+                           maxlength="200" required>
+
+                    <button class="primary-button" type="submit">
+                        Zapisz ustawienia
+                    </button>
+                </form>
+            </section>
+
+            <section class="admin-card" id="clubs">
+                <div class="admin-section-heading">
+                    <span>02 / KLUBY</span>
+                    <h2>Zarządzanie klubami</h2>
+                    <p>Edytuj nazwy i budżety wszystkich klubów.</p>
+                </div>
+
+                {% for club in clubs %}
+                <form class="admin-edit-row"
+                      action="{{ url_for('admin_edit_club', club_id=club.id) }}"
+                      method="POST">
+
+                    <div>
+                        <label>Nazwa klubu</label>
+                        <input type="text" name="name"
+                               value="{{ club.name }}"
+                               maxlength="80" required>
+                        <small>Właściciel: {{ club.username }}</small>
+                    </div>
+
+                    <div>
+                        <label>Budżet (zł)</label>
+                        <input type="number" name="budget"
+                               value="{{ club.budget }}"
+                               min="0" required>
+                    </div>
+
+                    <button type="submit" class="primary-button">
+                        Zapisz
+                    </button>
+                </form>
+                {% else %}
+                <p class="admin-empty">Brak klubów w bazie.</p>
+                {% endfor %}
+            </section>
+
+            <section class="admin-card" id="players">
+                <div class="admin-section-heading">
+                    <span>03 / KADRA</span>
+                    <h2>Zarządzanie zawodnikami</h2>
+                    <p>Zmieniaj nazwiska i oceny zawodników.</p>
+                </div>
+
+                {% for player in players %}
+                <form class="admin-edit-row"
+                      action="{{ url_for('admin_edit_player', player_id=player.id) }}"
+                      method="POST">
+
+                    <div>
+                        <label>Imię i nazwisko</label>
+                        <input type="text" name="name"
+                               value="{{ player.name }}"
+                               maxlength="100" required>
+                        <small>Klub: {{ player.club_name }}</small>
+                    </div>
+
+                    <div>
+                        <label>Ocena (1–99)</label>
+                        <input type="number" name="rating"
+                               value="{{ player.rating }}"
+                               min="1" max="99" required>
+                    </div>
+
+                    <button type="submit" class="primary-button">
+                        Zapisz
+                    </button>
+                </form>
+                {% else %}
+                <p class="admin-empty">Brak zawodników w bazie.</p>
+                {% endfor %}
+            </section>
+
+            <section class="admin-card" id="users">
+                <div class="admin-section-heading">
+                    <span>04 / KONTA</span>
+                    <h2>Użytkownicy</h2>
+                    <p>Lista kont zarejestrowanych w aplikacji.</p>
+                </div>
+
+                <div class="table-scroll">
+                    <table class="players-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>NAZWA UŻYTKOWNIKA</th>
+                                <th>ROLA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>#{{ user.id }}</td>
+                                <td><strong>{{ user.username }}</strong></td>
+                                <td>
+                                    {% if user.is_admin %}
+                                        <span class="admin-role">ADMIN</span>
+                                    {% else %}
+                                        Użytkownik
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3">Brak użytkowników.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <footer class="footer">
+                Football Manager © 2026 · Administration
+            </footer>
+
+        </main>
+    </div>
+</div>
+
+</body>
+</html>
