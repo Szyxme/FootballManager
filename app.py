@@ -6,13 +6,18 @@ from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 
+
 from database import connect, create_tables
 
-with app.app_context():
-    create_tables()
+app = Flask(__name__)
+
 app.secret_key = os.environ.get(
     "FLASK_SECRET_KEY", "local-development-only-change-me"
 )
+
+with app.app_context():
+    create_tables()
+
 
 
 def admin_required(f):
