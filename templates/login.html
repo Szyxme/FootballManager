@@ -4,13 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logowanie - Football Manager</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <title>Logowanie - Trener piłkarski</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
 </head>
+
 <body>
 
     <div class="login-box">
-        <h1>⚽ Football Manager</h1>
+
+        <h1>⚽ Trener piłki nożnej</h1>
         <h2>Logowanie</h2>
 
         {% with messages = get_flashed_messages() %}
@@ -21,25 +26,36 @@
 
         <form method="POST" action="{{ url_for('login') }}">
 
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <!-- Zabezpieczenie CSRF -->
+            <input type="hidden"
+                   name="_csrf_token"
+                   value="{{ csrf_token() }}">
 
             <input type="text"
                    name="username"
                    placeholder="Nazwa użytkownika"
+                   autocomplete="username"
                    required>
 
             <input type="password"
                    name="password"
                    placeholder="Hasło"
+                   autocomplete="current-password"
                    required>
 
-            <button type="submit">Zaloguj się</button>
+            <button type="submit">
+                Zaloguj się
+            </button>
 
         </form>
 
-        <p>Nie masz konta?
-            <a href="{{ url_for('register') }}">Zarejestruj się</a>
+        <p>
+            Nie masz konta?
+            <a href="{{ url_for('register') }}">
+                Zarejestruj się
+            </a>
         </p>
+
     </div>
 
 </body>
