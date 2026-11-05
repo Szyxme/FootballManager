@@ -1,6 +1,8 @@
 
 import os
 import sqlite3
+
+from psycopg.errors import UniqueViolation
 import secrets
 from functools import wraps
 
@@ -141,7 +143,9 @@ def register():
             flash("Konto utworzone!")
             return redirect(url_for("login"))
 
-        except sqlite3.IntegrityError:
+       
+except (sqlite3.IntegrityError, UniqueViolation):
+
             flash("Ta nazwa użytkownika jest zajęta.")
 
         finally:
