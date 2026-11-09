@@ -38,6 +38,22 @@ Football Manager to projekt aplikacji internetowej do zarządzania klubami piłk
 - SQLite
 - JavaScript
 
+## API i JavaScript
+
+Zalogowany użytkownik może korzystać z API zwracającego dane w formacie JSON:
+
+| Metoda | Endpoint | Działanie |
+|---|---|---|
+| GET, POST | `/api/clubs` | Pobieranie i tworzenie klubów |
+| GET, POST | `/api/players` | Pobieranie i dodawanie zawodników |
+| DELETE | `/api/players/<id>` | Usuwanie zawodnika |
+| GET, POST | `/api/leagues` | Pobieranie i tworzenie lig |
+
+Żądania zmieniające dane wymagają tokenu CSRF w nagłówku `X-CSRF-Token`.
+Formularze na pulpicie wysyłają dane do API przez JavaScript, a po udanym
+zapisie odświeżają widok. Bez JavaScriptu formularze nadal korzystają
+z tradycyjnych tras aplikacji.
+
 ## Planowane funkcje
 
 - Zarządzanie klubami i zawodnikami

@@ -72,6 +72,7 @@
         </header>
 
         <main class="content">
+            <p id="form-feedback" class="form-feedback" role="status" aria-live="polite"></p>
 
             <!-- POWITANIE -->
             <section class="welcome-banner" id="overview">
@@ -171,7 +172,8 @@
                             Nadaj nazwę swojej nowej drużynie.
                         </p>
 
-                        <form action="{{ url_for('add_club') }}" method="POST">
+                        <form action="{{ url_for('add_club') }}" method="POST"
+                              data-api-url="{{ url_for('api_clubs') }}">
                             <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
 
                             <label for="club-name">Nazwa klubu</label>
@@ -238,7 +240,9 @@
                                     <td>{{ player.club_name }}</td>
                                     <td>
                                         <form action="{{ url_for('delete_player', player_id=player.id) }}"
-                                              method="POST">
+                                              method="POST"
+                                              data-api-url="{{ url_for('api_delete_player', player_id=player.id) }}"
+                                              data-api-method="DELETE">
                                             <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
 
                                             <button type="submit" class="delete-button">
@@ -263,7 +267,8 @@
                     <h3>Dodaj nowego zawodnika</h3>
 
                     {% if clubs %}
-                    <form action="{{ url_for('add_player') }}" method="POST">
+                    <form action="{{ url_for('add_player') }}" method="POST"
+                          data-api-url="{{ url_for('api_players') }}">
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
 
                         <div class="form-grid">
@@ -353,7 +358,8 @@
                             Zorganizuj nowe rozgrywki.
                         </p>
 
-                        <form action="{{ url_for('add_league') }}" method="POST">
+                        <form action="{{ url_for('add_league') }}" method="POST"
+                              data-api-url="{{ url_for('api_leagues') }}">
                             <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
 
                             <label for="league-name">Nazwa ligi</label>
@@ -376,5 +382,6 @@
     </div>
 </div>
 
+<script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </body>
 </html>

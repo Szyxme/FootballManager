@@ -225,6 +225,15 @@ input::placeholder { color: #687c90; }
 .login-box p { color: var(--muted); margin-top: 20px; }
 .login-box a { color: var(--green); }
 .message { color: #ffd166 !important; margin-bottom: 15px; }
+.form-feedback {
+    background: #1c4431; border: 1px solid #285e45; color: var(--green);
+    padding: 12px 16px; border-radius: 8px; margin-bottom: 20px;
+}
+.form-feedback:empty { display: none; }
+.form-feedback.is-error {
+    background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.4); color: #ff8585;
+}
+button:disabled { opacity: .65; cursor: wait; }
 @media (max-width: 1100px) {
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .two-columns { grid-template-columns: 1fr; }

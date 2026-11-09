@@ -6,7 +6,7 @@ from functools import wraps
 
 from flask import (
     Flask, render_template, request, redirect,
-    url_for, session, flash, abort
+    url_for, session, flash, abort, jsonify
 )
 
 from werkzeug.security import (
@@ -45,13 +45,17 @@ app.jinja_env.globals["csrf_token"] = csrf_token
 
 @app.before_request
 def protect_forms():
-    if request.method == "POST":
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
         expected = session.get("_csrf_token", "")
         provided = request.form.get("_csrf_token", "")
+        if request.path.startswith("/api/"):
+            provided = request.headers.get("X-CSRF-Token", provided)
 
         if not expected or not secrets.compare_digest(
             expected, provided
         ):
+            if request.path.startswith("/api/"):
+                return jsonify(error="Nieprawidłowy token formularza."), 400
             abort(
                 400,
                 description="Nieprawidłowy token formularza."
@@ -94,6 +98,28 @@ def admin_required(f):
         return f(*args, **kwargs)
 
     return decorated
+
+
+def api_login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if "user_id" not in session:
+            return jsonify(error="Wymagane jest zalogowanie."), 401
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def api_payload():
+    if not request.is_json:
+        return None, (jsonify(error="Wymagany jest format JSON."), 400)
+
+    payload = request.get_json(silent=True)
+    if not isinstance(payload, dict):
+        return None, (jsonify(error="Nieprawidłowe dane JSON."), 400)
+
+    return payload, None
 
 
 # USTAWIENIA STRONY
@@ -382,6 +408,190 @@ def add_league():
         db.close()
 
     return redirect(url_for("index"))
+
+
+# API
+
+@app.route("/api/clubs", methods=["GET", "POST"])
+@api_login_required
+def api_clubs():
+    db = connect()
+
+    if request.method == "GET":
+        clubs = db.execute(
+            """
+            SELECT id, name, budget
+            FROM clubs
+            WHERE user_id = ?
+            ORDER BY id
+            """,
+            (session["user_id"],)
+        ).fetchall()
+        db.close()
+        return jsonify(data=[dict(club) for club in clubs])
+
+    payload, error = api_payload()
+    if error:
+        db.close()
+        return error
+
+    name = payload.get("name", "")
+    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
+        db.close()
+        return jsonify(error="Nazwa klubu jest wymagana (maks. 80 znaków)."), 400
+
+    cursor = db.execute(
+        "INSERT INTO clubs (name, user_id) VALUES (?, ?)",
+        (name.strip(), session["user_id"])
+    )
+    db.commit()
+    club = db.execute(
+        "SELECT id, name, budget FROM clubs WHERE id = ?",
+        (cursor.lastrowid,)
+    ).fetchone()
+    db.close()
+    return jsonify(data=dict(club)), 201
+
+
+@app.route("/api/players", methods=["GET", "POST"])
+@api_login_required
+def api_players():
+    db = connect()
+
+    if request.method == "GET":
+        players = db.execute(
+            """
+            SELECT players.id, players.name, players.position,
+                   players.age, players.rating, players.club_id,
+                   clubs.name AS club_name
+            FROM players
+            JOIN clubs ON players.club_id = clubs.id
+            WHERE clubs.user_id = ?
+            ORDER BY players.id
+            """,
+            (session["user_id"],)
+        ).fetchall()
+        db.close()
+        return jsonify(data=[dict(player) for player in players])
+
+    payload, error = api_payload()
+    if error:
+        db.close()
+        return error
+
+    name = payload.get("name", "")
+    position = payload.get("position", "")
+    age = payload.get("age")
+    club_id = payload.get("club_id")
+    valid_positions = {"BR", "OB", "PO", "NA"}
+
+    if (
+        not isinstance(name, str)
+        or not name.strip()
+        or len(name.strip()) > 100
+        or not isinstance(position, str)
+        or position not in valid_positions
+        or not isinstance(age, int)
+        or isinstance(age, bool)
+        or not 15 <= age <= 50
+        or not isinstance(club_id, int)
+        or isinstance(club_id, bool)
+    ):
+        db.close()
+        return jsonify(error="Sprawdź dane zawodnika."), 400
+
+    club = db.execute(
+        "SELECT id FROM clubs WHERE id = ? AND user_id = ?",
+        (club_id, session["user_id"])
+    ).fetchone()
+    if not club:
+        db.close()
+        return jsonify(error="Nie znaleziono klubu."), 404
+
+    cursor = db.execute(
+        """
+        INSERT INTO players (name, position, age, club_id)
+        VALUES (?, ?, ?, ?)
+        """,
+        (name.strip(), position, age, club_id)
+    )
+    db.commit()
+    player = db.execute(
+        """
+        SELECT players.id, players.name, players.position,
+               players.age, players.rating, players.club_id,
+               clubs.name AS club_name
+        FROM players
+        JOIN clubs ON players.club_id = clubs.id
+        WHERE players.id = ?
+        """,
+        (cursor.lastrowid,)
+    ).fetchone()
+    db.close()
+    return jsonify(data=dict(player)), 201
+
+
+@app.route("/api/players/<int:player_id>", methods=["DELETE"])
+@api_login_required
+def api_delete_player(player_id):
+    db = connect()
+    cursor = db.execute(
+        """
+        DELETE FROM players
+        WHERE id = ?
+        AND club_id IN (
+            SELECT id FROM clubs WHERE user_id = ?
+        )
+        """,
+        (player_id, session["user_id"])
+    )
+    db.commit()
+    db.close()
+
+    if cursor.rowcount == 0:
+        return jsonify(error="Nie znaleziono zawodnika."), 404
+    return jsonify(message="Zawodnik został usunięty.")
+
+
+@app.route("/api/leagues", methods=["GET", "POST"])
+@api_login_required
+def api_leagues():
+    db = connect()
+
+    if request.method == "GET":
+        leagues = db.execute(
+            """
+            SELECT id, name
+            FROM leagues
+            WHERE user_id = ?
+            ORDER BY id
+            """,
+            (session["user_id"],)
+        ).fetchall()
+        db.close()
+        return jsonify(data=[dict(league) for league in leagues])
+
+    payload, error = api_payload()
+    if error:
+        db.close()
+        return error
+
+    name = payload.get("name", "")
+    if not isinstance(name, str) or not name.strip() or len(name.strip()) > 80:
+        db.close()
+        return jsonify(error="Nazwa ligi jest wymagana (maks. 80 znaków)."), 400
+
+    cursor = db.execute(
+        "INSERT INTO leagues (name, user_id) VALUES (?, ?)",
+        (name.strip(), session["user_id"])
+    )
+    db.commit()
+    league = db.execute(
+        "SELECT id, name FROM leagues WHERE id = ?",
+        (cursor.lastrowid,)
+    ).fetchone()
+    db.close()
+    return jsonify(data=dict(league)), 201
 
 
 # PANEL ADMINISTRATORA
