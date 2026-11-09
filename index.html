@@ -1,13 +1,234 @@
+
 <!DOCTYPE html>
 <html lang="pl">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Football Manager — podgląd</title><link rel="stylesheet" href="static/style.css"></head>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Football Manager</title>
+<link rel="stylesheet" href="static/style.css">
+<script src="static/app.js" defer></script>
+</head>
+
 <body class="dashboard-page">
 <div class="app-layout">
-<aside class="sidebar"><div class="brand"><div class="brand-icon">FM</div><div><strong>Football Manager</strong><span>MANAGER</span></div></div><div class="menu-label">ZARZĄDZANIE</div><nav class="sidebar-nav"><a class="active" href="#overview">◈ &nbsp; Panel główny</a><a href="#clubs">⬡ &nbsp; Moje kluby</a><a href="#players">♙ &nbsp; Zawodnicy</a><a href="#leagues">▤ &nbsp; Rozgrywki</a></nav><div class="sidebar-bottom"><div class="online-dot"></div><span>Football Manager</span><small>Podgląd</small></div></aside>
-<div class="main-area"><header class="topbar"><div><span class="breadcrumb">Football Manager / Podgląd</span><h1>Centrum zarządzania</h1></div><div class="user-area"><div class="user-avatar">G</div><div class="user-details"><strong>Gość</strong><span>Tryb podglądu</span></div></div></header>
-<main class="content"><section class="welcome-banner" id="overview"><div><span class="eyebrow">CENTRUM DOWODZENIA</span><h2>Witaj w Football Manager!</h2><p>Buduj swoją piłkarską historię. Twórz kluby, zarządzaj zawodnikami i organizuj własne rozgrywki.</p><a class="primary-link" href="#clubs">Zarządzaj klubami →</a></div><div class="banner-art">⚽</div></section>
-<section class="stats-grid"><div class="stat-card"><div class="stat-top"><span>MOJE KLUBY</span><span class="stat-icon">⬡</span></div><div class="stat-value">0</div><div class="stat-footer">Utworzone kluby</div></div><div class="stat-card"><div class="stat-top"><span>ZAWODNICY</span><span class="stat-icon">♙</span></div><div class="stat-value">0</div><div class="stat-footer">Zawodnicy w bazie</div></div><div class="stat-card"><div class="stat-top"><span>ROZGRYWKI</span><span class="stat-icon">▤</span></div><div class="stat-value">0</div><div class="stat-footer">Utworzone ligi</div></div><div class="stat-card"><div class="stat-top"><span>STATUS</span><span class="stat-icon">●</span></div><div class="stat-value status-value">PODGLĄD</div><div class="stat-footer">Bez serwera</div></div></section>
-<section class="section-block" id="clubs"><div class="section-heading"><div><span class="section-tag">ZARZĄDZANIE</span><h2>Moje kluby</h2><p>Podgląd formularza dodawania klubu.</p></div></div><div class="two-columns"><div class="content-card"><h3>Lista klubów</h3><div class="empty-state"><div>⚽</div><strong>Brak klubów</strong><p>To podgląd wyglądu, bez zapisu danych.</p></div></div><div class="content-card"><h3>Utwórz nowy klub</h3><p class="card-description">Formularz jest widoczny, ale wymaga backendu do zapisu.</p><label for="club-name">Nazwa klubu</label><input id="club-name" placeholder="np. FC Gdańsk" disabled><button class="primary-button" type="button" disabled>+ Utwórz klub</button></div></div></section>
-<section class="section-block" id="players"><div class="section-heading"><div><span class="section-tag">KADRA</span><h2>Zawodnicy</h2></div></div><div class="content-card"><h3>Kadra zawodnicza</h3><p class="card-description">Lista zawodników pojawi się po uruchomieniu aplikacji z backendem.</p></div></section>
-<section class="section-block" id="leagues"><div class="section-heading"><div><span class="section-tag">ROZGRYWKI</span><h2>Moje ligi</h2></div></div><div class="content-card"><h3>Lista rozgrywek</h3><p class="card-description">Tutaj będą widoczne ligi.</p></div></section>
-<footer class="footer">Football Manager © 2026 · Podgląd HTML/CSS — formularze i baza wymagają backendu</footer></main></div></div></body></html>
+
+<aside class="sidebar">
+<div class="brand">
+<div class="brand-icon">FM</div>
+<div>
+<strong>Football Manager</strong>
+<span>MANAGER</span>
+</div>
+</div>
+
+<div class="menu-label">ZARZĄDZANIE</div>
+<nav class="sidebar-nav">
+<a class="active" href="#overview">◈ &nbsp; Panel główny</a>
+<a href="#clubs">⬡ &nbsp; Moje kluby</a>
+<a href="#players">♙ &nbsp; Zawodnicy</a>
+<a href="#transfers">⇄ &nbsp; Transfery</a>
+<a href="#leagues">▤ &nbsp; Rozgrywki</a>
+</nav>
+
+<div class="sidebar-bottom">
+<div class="online-dot"></div>
+<span>Football Manager</span>
+<small>Zapis lokalny</small>
+</div>
+</aside>
+
+<div class="main-area">
+<header class="topbar">
+<div>
+<span class="breadcrumb">Football Manager / Dashboard</span>
+<h1>Centrum zarządzania</h1>
+</div>
+<div class="user-area">
+<div class="user-avatar">FM</div>
+<div class="user-details">
+<strong>Manager</strong>
+<span>Tryb lokalny</span>
+</div>
+</div>
+</header>
+
+<main class="content">
+
+<section class="welcome-banner" id="overview">
+<div>
+<span class="eyebrow">CENTRUM DOWODZENIA</span>
+<h2>Witaj w Football Manager!</h2>
+<p>Twórz kluby, zarządzaj zawodnikami i organizuj rozgrywki.</p>
+<a class="primary-link" href="#clubs">Zarządzaj klubami →</a>
+</div>
+<div class="banner-art">⚽</div>
+</section>
+
+<section class="stats-grid">
+<div class="stat-card">
+<div class="stat-top"><span>MOJE KLUBY</span><span>⬡</span></div>
+<div class="stat-value" id="clubs-count">0</div>
+<div class="stat-footer">Utworzone kluby</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-top"><span>ZAWODNICY</span><span>♙</span></div>
+<div class="stat-value" id="players-count">0</div>
+<div class="stat-footer">Zawodnicy w bazie</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-top"><span>ROZGRYWKI</span><span>▤</span></div>
+<div class="stat-value" id="leagues-count">0</div>
+<div class="stat-footer">Utworzone ligi</div>
+</div>
+
+<div class="stat-card">
+<div class="stat-top"><span>STATUS</span><span>●</span></div>
+<div class="stat-value status-value">AKTYWNY</div>
+<div class="stat-footer">Zapis lokalny</div>
+</div>
+</section>
+
+<section class="section-block" id="clubs">
+<div class="section-heading">
+<div>
+<span class="section-tag">ZARZĄDZANIE</span>
+<h2>Moje kluby</h2>
+<p>Twórz i edytuj swoje kluby.</p>
+</div>
+</div>
+
+<div class="two-columns">
+<div class="content-card">
+<h3>Lista klubów</h3>
+<div id="clubs-list"></div>
+</div>
+
+<div class="content-card">
+<h3>Dodaj / edytuj klub</h3>
+<form id="club-form">
+<input type="hidden" id="club-edit-id">
+<label for="club-name">Nazwa klubu</label>
+<input id="club-name" required maxlength="80" placeholder="np. FC Barcelona">
+<label for="club-budget">Budżet (€)</label>
+<input id="club-budget" type="number" min="0" step="1" required value="1000000">
+<button class="primary-button" type="submit">Zapisz klub</button>
+<button type="button" id="club-cancel" hidden>Anuluj edycję</button>
+</form>
+</div>
+</div>
+</section>
+
+<section class="section-block" id="players">
+<div class="section-heading">
+<div>
+<span class="section-tag">KADRA</span>
+<h2>Zawodnicy</h2>
+</div>
+</div>
+
+<div class="two-columns">
+<div class="content-card">
+<h3>Lista zawodników</h3>
+<div id="players-list"></div>
+</div>
+
+<div class="content-card">
+<h3>Dodaj / edytuj zawodnika</h3>
+<form id="player-form">
+<input type="hidden" id="player-edit-id">
+<label for="player-name">Imię i nazwisko</label>
+<input id="player-name" required maxlength="80" placeholder="np. Jan Kowalski">
+<label for="player-age">Wiek</label>
+<input id="player-age" type="number" min="15" max="50" required>
+<label for="player-position">Pozycja</label>
+<select id="player-position" required>
+<option>Bramkarz</option>
+<option>Obrońca</option>
+<option>Pomocnik</option>
+<option>Napastnik</option>
+</select>
+<label for="player-club">Klub</label>
+<select id="player-club" required></select>
+<button class="primary-button" type="submit">Zapisz zawodnika</button>
+<button type="button" id="player-cancel" hidden>Anuluj edycję</button>
+</form>
+</div>
+</div>
+</section>
+
+<section class="section-block" id="transfers">
+<div class="section-heading">
+<div>
+<span class="section-tag">RYNEK</span>
+<h2>Transfery</h2>
+</div>
+</div>
+
+<div class="two-columns">
+<div class="content-card">
+<h3>Historia transferów</h3>
+<div id="transfers-list"></div>
+</div>
+
+<div class="content-card">
+<h3>Przeprowadź transfer</h3>
+<form id="transfer-form">
+<label for="transfer-player">Zawodnik</label>
+<select id="transfer-player" required></select>
+<label for="transfer-club">Nowy klub</label>
+<select id="transfer-club" required></select>
+<label for="transfer-fee">Kwota transferu (€)</label>
+<input id="transfer-fee" type="number" min="0" step="1" required value="0">
+<button class="primary-button" type="submit">Wykonaj transfer</button>
+</form>
+</div>
+</div>
+</section>
+
+<section class="section-block" id="leagues">
+<div class="section-heading">
+<div>
+<span class="section-tag">ROZGRYWKI</span>
+<h2>Moje ligi</h2>
+</div>
+</div>
+
+<div class="two-columns">
+<div class="content-card">
+<h3>Lista rozgrywek</h3>
+<div id="leagues-list"></div>
+</div>
+
+<div class="content-card">
+<h3>Utwórz ligę</h3>
+<form id="league-form">
+<label for="league-name">Nazwa ligi</label>
+<input id="league-name" required maxlength="80" placeholder="np. Ekstraklasa">
+<button class="primary-button" type="submit">Utwórz ligę</button>
+</form>
+</div>
+</div>
+
+<div class="content-card">
+<h3>Przypisz klub do ligi</h3>
+<form id="league-club-form">
+<label for="league-select">Liga</label>
+<select id="league-select" required></select>
+<label for="league-club">Klub</label>
+<select id="league-club" required></select>
+<button class="primary-button" type="submit">Dodaj klub do ligi</button>
+</form>
+</div>
+</section>
+
+<footer class="footer">
+Football Manager © 2026 · Zapis lokalny w przeglądarce
+</footer>
+
+</main>
+</div>
+</div>
+</body>
+</html>
