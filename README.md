@@ -1,70 +1,124 @@
-# Football Manager ⚽
+# ⚽ Football Manager 4.0
 
-Football Manager to projekt aplikacji internetowej do zarządzania klubami piłkarskimi, tworzony podczas praktyk.
+Projekt szkolny – aplikacja internetowa do zarządzania klubami piłkarskimi, przygotowywana w dwuosobowym zespole.
 
-## Autorzy projektu
+**Status:** projekt w trakcie rozwoju. Niektóre funkcje mogą wymagać dalszych poprawek.
 
-- **Szymon Chyliński**
-- **Przemysław Sosiński**
+## Technologie
 
-## Aktualnie wykonane
+- **Python + Flask** – backend i obsługa stron
+- **SQLite** – lokalna baza danych
+- **HTML, CSS i JavaScript** – interfejs użytkownika
+- **GitHub** – przechowywanie i współpraca nad kodem
 
-- Utworzenie podstawowej struktury projektu.
-- Przygotowanie strony głównej (`index.html`).
-- Stworzenie podstawowego wyglądu strony w CSS.
-- Przygotowanie bazy danych SQLite.
-- Utworzenie podstawowych tabel dla klubów i zawodników.
-- Przygotowanie prostych formularzy do wprowadzania danych.
+## Obecne funkcje
 
-## Podział zadań
+- Rejestracja i logowanie użytkowników
+- Tworzenie klubów, zawodników i lig
+- Dodawanie klubów do lig i generowanie terminarza
+- Symulowanie meczów z uwzględnieniem statystyk zawodników
+- Tabela ligowa, wyniki i historia meczów
+- Gole, asysty i liczba występów zawodników
+- Transfery, budżety klubów i finanse
+- Trening i rozwijanie statystyk zawodników
+- Kreator herbów: kształty, kolory, symbole i inicjały
+- Panel administratora
 
-### Szymon Chyliński
-- Backend aplikacji
-- Wygląd strony (CSS)
-- Baza danych SQLite
-- Tabele i formularze
+## Wymagania
 
-### Przemysław Sosiński
-- Frontend aplikacji
-- Tworzenie API
-- Programowanie w Pythonie
-- Obsługa JavaScript
+- Python 3.10 lub nowszy
+- VS Code lub inny edytor
+- Przeglądarka internetowa
+- Git (opcjonalnie, jeśli pobierasz ZIP)
 
-## Wykorzystane technologie
+## Jak uruchomić projekt – krok po kroku
 
-- HTML
-- CSS
-- Python
-- SQLite
-- JavaScript
+### 1. Pobierz projekt
 
-## API i JavaScript
+Wejdź na: https://github.com/szyxme/FootballManager
 
-Zalogowany użytkownik może korzystać z API zwracającego dane w formacie JSON:
+Kliknij **Code → Download ZIP**, rozpakuj archiwum i otwórz folder w VS Code.
 
-| Metoda | Endpoint | Działanie |
-|---|---|---|
-| GET, POST | `/api/clubs` | Pobieranie i tworzenie klubów |
-| GET, POST | `/api/players` | Pobieranie i dodawanie zawodników |
-| DELETE | `/api/players/<id>` | Usuwanie zawodnika |
-| GET, POST | `/api/leagues` | Pobieranie i tworzenie lig |
+### 2. Otwórz terminal w VS Code
 
-Żądania zmieniające dane wymagają tokenu CSRF w nagłówku `X-CSRF-Token`.
-Formularze na pulpicie wysyłają dane do API przez JavaScript, a po udanym
-zapisie odświeżają widok. Bez JavaScriptu formularze nadal korzystają
-z tradycyjnych tras aplikacji.
+Wybierz **Terminal → New Terminal**. Upewnij się, że jesteś w folderze, w którym znajdują się `app.py`, `database.py` i `requirements.txt`.
 
-## Planowane funkcje
+### 3. Zainstaluj zależności
 
-- Zarządzanie klubami i zawodnikami
-- System transferów
-- Budżety klubów
-- Tabele ligowe
-- Rozgrywanie meczów
-- Statystyki zawodników
+```bash
+python -m pip install -r requirements.txt
+```
 
-## Status projektu
+Jeżeli nie ma jeszcze pliku `requirements.txt`, wystarczy zainstalować Flask:
 
-**Projekt znajduje się we wczesnej fazie rozwoju.** Obecnie przygotowywane są podstawowe elementy aplikacji, takie jak struktura projektu, baza danych oraz wygląd strony.
+```bash
+python -m pip install Flask
+```
 
-Większość funkcjonalności jest jeszcze w fazie planowania i będzie stopniowo wdrażana w kolejnych etapach pracy.
+### 4. Przygotuj bazę danych
+
+```bash
+python database.py
+```
+
+Program utworzy lokalny plik `football_manager.db` lub uzupełni istniejącą bazę o brakujące tabele i kolumny. **Przed aktualizacją istniejącego projektu zrób kopię pliku bazy.**
+
+### 5. Uruchom serwer
+
+```bash
+python app.py
+```
+
+### 6. Otwórz stronę
+
+W przeglądarce wpisz:
+
+**http://127.0.0.1:5000/**
+
+Zarejestruj konto i zaloguj się.
+
+> Na Windows, jeżeli `python` nie działa, spróbuj `py`, np. `py app.py`.
+
+## Jak korzystać z kreatora herbów?
+
+1. Zaloguj się do aplikacji.
+2. Przejdź do sekcji **Kluby**.
+3. Przy swoim klubie wybierz **Edytuj herb**.
+4. Ustaw kształt, kolory, symbol i inicjały.
+5. Kliknij **Zapisz herb**.
+
+## Struktura projektu
+
+```text
+FootballManager/
+├── app.py
+├── database.py
+├── requirements.txt
+├── README.md
+├── templates/
+│   ├── login.html
+│   ├── register.html
+│   ├── dashboard.html
+│   ├── admin.html
+│   └── crest_editor.html
+└── static/
+    ├── style.css
+    └── crest-editor.js
+```
+
+
+## Ważne informacje
+
+- Aplikacja Flask działa lokalnie na komputerze, a nie jako samodzielna strona GitHub Pages.
+- Każda osoba ma osobną lokalną bazę SQLite, dopóki nie skonfigurujecie wspólnego serwera i bazy.
+- Starsze mecze nie otrzymają automatycznie danych o strzelcach i asystach.
+- Ponowne generowanie terminarza może usunąć stare mecze i ich zdarzenia bramkowe; liczniki kariery zawodników pozostają.
+- `debug=True` i domyślny klucz sesji w `app.py` są przeznaczone tylko do pracy lokalnej. Przed publicznym wdrożeniem trzeba wyłączyć debug i ustawić bezpieczny `FLASK_SECRET_KEY`.
+
+## Autorzy
+
+- **Szymon Chyliński** – backend, interfejs, baza danych, tabele i formularze
+- **Przemysław Sosiński** – frontend, API, Python i JavaScript
+
+Projekt edukacyjny rozwijany w ramach nauki programowania.
+PROJEKT JEST JESZCZE WE WCZESNEJ FAZIE I BĘDZIE JESZCZE ROZBUDOWYWANY!
