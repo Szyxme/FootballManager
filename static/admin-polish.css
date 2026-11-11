@@ -1,0 +1,131 @@
+
+/* PANEL ADMINISTRATORA */
+
+:root {
+    color-scheme: dark;
+}
+
+body {
+    background: #0b1119;
+    color: #eef4f9;
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+header {
+    background: linear-gradient(125deg, #172735, #13241f);
+    border-bottom: 1px solid #334d4a;
+}
+
+header h1 {
+    font-size: 30px;
+    letter-spacing: -1px;
+}
+
+nav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+nav a {
+    color: #b6e8d2;
+    text-decoration: none;
+    border: 1px solid #416457;
+    border-radius: 9px;
+    padding: 8px 12px;
+    margin: 0;
+}
+
+nav a:hover {
+    background: #234537;
+}
+
+main {
+    max-width: 1200px;
+}
+
+section {
+    background: #192937;
+    border: 1px solid #334959;
+    border-radius: 16px;
+    padding: 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 28px #0002;
+}
+
+section h2 {
+    letter-spacing: -0.5px;
+}
+
+.item {
+    border-color: #3a4b58;
+}
+
+label {
+    color: #c3d1dc;
+}
+
+input,
+select {
+    background: #101b27;
+    border: 1px solid #405768;
+    border-radius: 9px;
+    min-height: 41px;
+    color: white;
+    padding: 10px;
+}
+
+input:focus,
+select:focus {
+    outline: 2px solid #5ad69d;
+}
+
+button {
+    background: #47d59a;
+    border: none;
+    border-radius: 9px;
+    padding: 10px 16px;
+    color: #082016;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #75e6b5;
+}
+
+.stats {
+    gap: 15px;
+}
+
+.stats div {
+    background: #1c3040;
+    border: 1px solid #37505e;
+    border-radius: 13px;
+    padding: 20px;
+}
+
+.stats strong {
+    color: #68e3ad;
+    font-size: 34px;
+}
+
+.alert {
+    background: #1b4335;
+    border: 1px solid #458468;
+}
+
+@media (max-width: 650px) {
+    main {
+        padding: 16px 12px 60px;
+    }
+
+    section {
+        padding: 17px;
+    }
+
+    form label {
+        width: 100%;
+    }
+}

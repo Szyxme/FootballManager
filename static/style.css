@@ -369,3 +369,216 @@ button:disabled { opacity: .65; cursor: wait; }
     .admin-edit-row { grid-template-columns: 1fr; }
     .admin-topbar { flex-direction: column; align-items: flex-start; }
 }
+
+
+/* FOOTBALL MANAGER 3.0 - NOWY WYGLAD */
+
+:root {
+    --fm-bg: #0b1119;
+    --fm-card: #172330;
+    --fm-border: #304050;
+    --fm-green: #43d99a;
+    --fm-text: #edf3f8;
+    --fm-muted: #a0b0c0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--fm-bg);
+    color: var(--fm-text);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.sidebar {
+    background: #101923;
+    border-right: 1px solid var(--fm-border);
+}
+
+.brand {
+    padding-bottom: 22px;
+}
+
+.sidebar-nav a {
+    border-radius: 10px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.sidebar-nav a:hover {
+    background: #203b34;
+    color: var(--fm-green);
+}
+
+.sidebar-nav a.active {
+    background: #193d32;
+    color: var(--fm-green);
+}
+
+.topbar {
+    background: #101923;
+    border-bottom: 1px solid var(--fm-border);
+}
+
+.welcome-banner {
+    background: linear-gradient(120deg, #142b25, #1a4935);
+    border: 1px solid #315747;
+    border-radius: 18px;
+}
+
+.stat-card,
+.fm-panel {
+    background: var(--fm-card);
+    border: 1px solid var(--fm-border);
+    border-radius: 15px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+    transition: border-color 0.2s, transform 0.2s;
+}
+
+.stat-card:hover,
+.fm-panel:hover {
+    border-color: #426052;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-value {
+    color: #ffffff;
+    font-weight: 800;
+}
+
+.section-heading h2 {
+    color: #f4f7fa;
+    letter-spacing: -0.5px;
+}
+
+.fm-btn,
+button[type="submit"] {
+    background: var(--fm-green);
+    color: #071c13;
+    border: none;
+    border-radius: 9px;
+    padding: 10px 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.fm-btn:hover,
+button[type="submit"]:hover {
+    background: #74e8b6;
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+input,
+select,
+textarea {
+    background: #101b27;
+    color: #eef4f9;
+    border: 1px solid #405768;
+    border-radius: 9px;
+    padding: 11px;
+    max-width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: 2px solid var(--fm-green);
+    outline-offset: 1px;
+}
+
+.fm-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.fm-table th {
+    background: #1e3040;
+    color: #b8c9d8;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.fm-table td,
+.fm-table th {
+    padding: 13px;
+    border-bottom: 1px solid #304050;
+}
+
+.fm-table tbody tr:hover {
+    background: #203342;
+}
+
+.fm-player {
+    padding: 17px 0;
+}
+
+.fm-player summary {
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.fm-player summary:hover {
+    color: var(--fm-green);
+}
+
+details[open] {
+    padding-bottom: 12px;
+}
+
+.fm-alert {
+    background: #1b4335;
+    border: 1px solid #458468;
+    color: #d9ffea;
+    border-radius: 10px;
+}
+
+:focus-visible {
+    outline: 2px solid #7ce6b6;
+    outline-offset: 3px;
+}
+
+@media (max-width: 768px) {
+    .fm-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .fm-panel {
+        padding: 16px;
+    }
+
+    .fm-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .fm-table {
+        font-size: 13px;
+    }
+
+    .fm-table th,
+    .fm-table td {
+        padding: 9px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+        animation: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+

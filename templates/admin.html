@@ -1,350 +1,55 @@
-
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administrator | {{ settings.site_name }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body class="admin-page">
-
-<div class="admin-layout">
-
-    <!-- MENU BOCZNE -->
-    <aside class="admin-sidebar">
-        <div class="admin-logo">
-            <div class="admin-logo-icon">FM</div>
-            <div>
-                <strong>FOOTBALL</strong>
-                <span>ADMIN PANEL</span>
-            </div>
-        </div>
-
-        <p class="admin-menu-title">ADMINISTRACJA</p>
-
-        <nav class="admin-navigation">
-            <a href="#overview">◈ Panel główny</a>
-            <a href="#settings">⚙ Ustawienia strony</a>
-            <a href="#clubs">⬡ Zarządzanie klubami</a>
-            <a href="#players">♙ Zarządzanie zawodnikami</a>
-            <a href="#users">♧ Użytkownicy</a>
-        </nav>
-
-        <div class="admin-sidebar-bottom">
-            <a href="{{ url_for('index') }}">← Powrót do aplikacji</a>
-            <a href="{{ url_for('logout') }}">Wyloguj się</a>
-        </div>
-    </aside>
-
-    <!-- GŁÓWNA CZĘŚĆ -->
-    <div class="admin-main">
-
-        <header class="admin-topbar">
-            <div>
-                <span>FOOTBALL MANAGER / ADMIN</span>
-                <h1>Panel administratora</h1>
-            </div>
-
-            <div class="admin-account">
-                <span class="admin-role">ADMIN</span>
-                <strong>{{ session.username }}</strong>
-            </div>
-        </header>
-
-        <main class="admin-content">
-
-            <!-- KOMUNIKATY -->
-            {% with messages = get_flashed_messages() %}
-                {% for message in messages %}
-                    <div class="admin-alert">{{ message }}</div>
-                {% endfor %}
-            {% endwith %}
-
-            <!-- POWITANIE -->
-            <section id="overview" class="admin-welcome">
-                <span>CENTRUM ADMINISTRACJI</span>
-                <h2>Witaj, {{ session.username }}!</h2>
-                <p>
-                    Zarządzaj ustawieniami aplikacji,
-                    klubami, zawodnikami i przeglądaj użytkowników.
-                </p>
-            </section>
-
-            <!-- STATYSTYKI -->
-            <div class="admin-stats">
-
-                <div class="admin-stat">
-                    <span>UŻYTKOWNICY</span>
-                    <strong>{{ users|length }}</strong>
-                    <small>Zarejestrowane konta</small>
-                </div>
-
-                <div class="admin-stat">
-                    <span>KLUBY</span>
-                    <strong>{{ clubs|length }}</strong>
-                    <small>Wszystkie kluby</small>
-                </div>
-
-                <div class="admin-stat">
-                    <span>ZAWODNICY</span>
-                    <strong>{{ players|length }}</strong>
-                    <small>Wszyscy piłkarze</small>
-                </div>
-
-            </div>
-
-            <!-- USTAWIENIA STRONY -->
-            <section class="admin-card" id="settings">
-
-                <div class="admin-section-heading">
-                    <span>01 / PERSONALIZACJA</span>
-                    <h2>Ustawienia strony</h2>
-                    <p>Zmień nazwę aplikacji i tekst powitalny.</p>
-                </div>
-
-                <form action="{{ url_for('admin_settings') }}" method="POST">
-
-                    <input type="hidden"
-                           name="_csrf_token"
-                           value="{{ csrf_token() }}">
-
-                    <label for="site-name">Nazwa aplikacji</label>
-
-                    <input id="site-name"
-                           type="text"
-                           name="site_name"
-                           value="{{ settings.site_name }}"
-                           maxlength="80"
-                           required>
-
-                    <label for="welcome-text">Tekst powitalny</label>
-
-                    <input id="welcome-text"
-                           type="text"
-                           name="welcome_text"
-                           value="{{ settings.welcome_text }}"
-                           maxlength="200"
-                           required>
-
-                    <button class="primary-button" type="submit">
-                        Zapisz ustawienia
-                    </button>
-
-                </form>
-            </section>
-
-            <!-- ZARZĄDZANIE KLUBAMI -->
-            <section class="admin-card" id="clubs">
-
-                <div class="admin-section-heading">
-                    <span>02 / KLUBY</span>
-                    <h2>Zarządzanie klubami</h2>
-                    <p>Edytuj nazwy i budżety wszystkich klubów.</p>
-                </div>
-
-                {% for club in clubs %}
-
-                <form class="admin-edit-row"
-                      action="{{ url_for('admin_edit_club', club_id=club.id) }}"
-                      method="POST">
-
-                    <input type="hidden"
-                           name="_csrf_token"
-                           value="{{ csrf_token() }}">
-
-                    <div>
-                        <label>Nazwa klubu</label>
-
-                        <input type="text"
-                               name="name"
-                               value="{{ club.name }}"
-                               maxlength="80"
-                               required>
-
-                        <small>Właściciel: {{ club.username }}</small>
-                    </div>
-
-                    <div>
-                        <label>Budżet (zł)</label>
-
-                        <input type="number"
-                               name="budget"
-                               value="{{ club.budget }}"
-                               min="0"
-                               required>
-                    </div>
-
-                    <button type="submit" class="primary-button">
-                        Zapisz
-                    </button>
-
-                </form>
-
-                {% else %}
-
-                <p class="admin-empty">Brak klubów w bazie.</p>
-
-                {% endfor %}
-
-            </section>
-
-            <!-- ZARZĄDZANIE ZAWODNIKAMI -->
-            <section class="admin-card" id="players">
-
-                <div class="admin-section-heading">
-                    <span>03 / KADRA</span>
-                    <h2>Zarządzanie zawodnikami</h2>
-                    <p>Zmieniaj nazwiska i oceny zawodników.</p>
-                </div>
-
-                {% for player in players %}
-
-                <form class="admin-edit-row"
-                      action="{{ url_for('admin_edit_player', player_id=player.id) }}"
-                      method="POST">
-
-                    <input type="hidden"
-                           name="_csrf_token"
-                           value="{{ csrf_token() }}">
-
-                    <div>
-                        <label>Imię i nazwisko</label>
-
-                        <input type="text"
-                               name="name"
-                               value="{{ player.name }}"
-                               maxlength="100"
-                               required>
-
-                        <small>Klub: {{ player.club_name }}</small>
-                    </div>
-
-                    <div>
-                        <label>Ocena (1–99)</label>
-
-                        <input type="number"
-                               name="rating"
-                               value="{{ player.rating }}"
-                               min="1"
-                               max="99"
-                               required>
-                    </div>
-
-                    <button type="submit" class="primary-button">
-                        Zapisz
-                    </button>
-
-                </form>
-
-                {% else %}
-
-                <p class="admin-empty">Brak zawodników w bazie.</p>
-
-                {% endfor %}
-
-            </section>
-
-            <!-- UŻYTKOWNICY -->
-            <section class="admin-card" id="users">
-
-                <div class="admin-section-heading">
-                    <span>04 / KONTA</span>
-                    <h2>Użytkownicy</h2>
-                    <p>Lista kont zarejestrowanych w aplikacji.</p>
-                </div>
-
-                <div class="table-scroll">
-
-                    <table class="players-table">
-
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>NAZWA UŻYTKOWNIKA</th>
-                                <th>ROLA</th>
-                                <th>AKCJE</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-
-                            {% for user in users %}
-
-                            <tr>
-                                <td>#{{ user.id }}</td>
-
-                                <td>
-                                    <strong>{{ user.username }}</strong>
-                                </td>
-
-                                <td>
-                                    {% if user.is_admin %}
-                                        <span class="admin-role">ADMIN</span>
-                                    {% else %}
-                                        Użytkownik
-                                    {% endif %}
-                                </td>
-
-                                <td>
-                                    {% if user.id != session.user_id %}
-
-                                    <form action="{{ url_for('toggle_admin', user_id=user.id) }}"
-                                          method="POST">
-
-                                        <input type="hidden"
-                                               name="_csrf_token"
-                                               value="{{ csrf_token() }}">
-
-                                        {% if user.is_admin %}
-
-                                        <button type="submit" class="delete-button">
-                                            Odbierz admina
-                                        </button>
-
-                                        {% else %}
-
-                                        <button type="submit" class="primary-button">
-                                            Nadaj admina
-                                        </button>
-
-                                        {% endif %}
-
-                                    </form>
-
-                                    {% else %}
-
-                                    <span>Twoje konto</span>
-
-                                    {% endif %}
-                                </td>
-                            </tr>
-
-                            {% else %}
-
-                            <tr>
-                                <td colspan="4">Brak użytkowników.</td>
-                            </tr>
-
-                            {% endfor %}
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-            </section>
-
-            <!-- STOPKA -->
-            <footer class="footer">
-                Football Manager © 2026 · Administration
-            </footer>
-
-        </main>
-    </div>
-
-</div>
-
-</body>
-</html>
+<!doctype html><html lang="pl">
+
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='admin-polish.css') }}">
+
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Panel administratora · Football Manager</title>
+        <style>
+            :root { color-scheme: dark; }
+            * { box-sizing: border-box; }
+            body { margin: 0; background: #101820; color: #e9f1f7; font: 15px system-ui, Arial; }
+            header { background: #172430; padding: 24px max(20px,calc((100vw - 1100px)/2)); border-bottom: 1px solid #324455; }
+            main { max-width: 1100px; margin: auto; padding: 24px 16px 80px; }
+            h1 { margin: 0 0 12px; }
+            h2 { margin: 0 0 15px; }
+nav a{color:#75d9ac;margin-right:22px}section{margin:20px 0;padding:22px;background:#192633;border:1px solid #334556;border-radius:14px}
+.item{border-top:1px solid #334556;padding:16px 0}form{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:10px 0}
+label{display:flex;flex-direction:column;gap:5px;font-size:13px;color:#bbcad7}input,select{background:#0f1a24;border:1px solid #42586a;border-radius:7px;color:white;padding:10px;max-width:100%}
+button{background:#35c985;color:#06180f;border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:pointer}
+small{color:#9cb1c2}.alert{padding:12px;background:#294a3d;border-radius:9px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.stats div{background:#253645;padding:15px;border-radius:9px}.stats strong{display:block;font-size:28px}
+@media(max-width:650px){.stats{grid-template-columns:1fr}form label{width:100%}}
+</style></head><body>
+<header><h1>⚽ Panel administratora</h1><nav><a href="{{ url_for('index') }}">← Aplikacja</a><a href="#clubs">Kluby</a><a href="#players">Zawodnicy</a><a href="#users">Użytkownicy</a><a href="{{ url_for('logout') }}">Wyloguj</a></nav></header>
+<main>
+{% with messages=get_flashed_messages() %}{% for message in messages %}<p class="alert">{{ message }}</p>{% endfor %}{% endwith %}
+<div class="stats"><div>Użytkownicy<strong>{{ users|length }}</strong></div><div>Kluby<strong>{{ clubs|length }}</strong></div><div>Zawodnicy<strong>{{ players|length }}</strong></div></div>
+<section id="settings"><h2>Ustawienia strony</h2>
+<form method="post" action="{{ url_for('admin_settings') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<label>Nazwa aplikacji<input name="site_name" value="{{ settings.site_name }}" required></label>
+<label>Tekst powitalny<input name="welcome_text" value="{{ settings.welcome_text }}" required></label>
+<button>Zapisz</button></form></section>
+<section id="clubs"><h2>Zarządzanie klubami</h2><p><small>Overall drużyny obliczany jest automatycznie ze średniej ocen zawodników.</small></p>
+{% for club in clubs %}<div class="item"><strong>{{ club.name }}</strong> <small>· właściciel: {{ club.username }}</small>
+<form method="post" action="{{ url_for('admin_edit_club',club_id=club.id) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<label>Nazwa<input name="name" value="{{ club.name }}" maxlength="80" required></label>
+<label>Budżet (€)<input type="number" name="budget" min="0" value="{{ club.budget }}" required></label>
+<button>Zapisz klub</button></form></div>{% else %}<p>Brak klubów.</p>{% endfor %}</section>
+<section id="players"><h2>Statystyki i dane zawodników</h2>
+{% for player in players %}<div class="item"><h3>{{ player.name }} · OVR {{ player.rating }} <small>· {{ player.club_name }}</small></h3>
+<form method="post" action="{{ url_for('admin_player_profile',player_id=player.id) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<label>Imię i nazwisko<input name="name" value="{{ player.name }}" maxlength="80" required></label>
+<label>Wiek<input type="number" name="age" value="{{ player.age }}" min="15" max="50" required></label>
+<label>Pozycja<select name="position">{% for pos in ['Bramkarz','Obrońca','Pomocnik','Napastnik'] %}<option value="{{ pos }}" {% if player.position == pos %}selected{% endif %}>{{ pos }}</option>{% endfor %}</select></label>
+<label>Klub<select name="club_id">{% for club in clubs %}<option value="{{ club.id }}" {% if club.id == player.club_id %}selected{% endif %}>{{ club.name }}</option>{% endfor %}</select></label>
+<button>Zapisz dane</button></form>
+<form method="post" action="{{ url_for('admin_player_stats',player_id=player.id) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+{% for field,title in [('pace','Tempo'),('shooting','Strzały'),('passing','Podania'),('dribbling','Drybling'),('defending','Obrona'),('physical','Fizyczność')] %}
+<label>{{ title }}<input type="number" name="{{ field }}" min="1" max="99" value="{{ player[field] }}" required style="width:85px"></label>{% endfor %}
+<button>Zapisz statystyki</button></form></div>{% else %}<p>Brak zawodników.</p>{% endfor %}</section>
+<section id="users"><h2>Użytkownicy</h2>{% for user in users %}<div class="item"><strong>{{ user.username }}</strong> · {% if user.is_admin %}Administrator{% else %}Użytkownik{% endif %}
+<form method="post" action="{{ url_for('toggle_admin',user_id=user.id) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button>Zmień rolę</button></form></div>{% endfor %}</section>
+</main></body></html>

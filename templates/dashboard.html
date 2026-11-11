@@ -1,387 +1,267 @@
-
 <!DOCTYPE html>
+
 <html lang="pl">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | Football Manager</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Football Manager | Panel</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<style>
+
+.fm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+
+.fm-panel{background:#151f2b;border:1px solid #263545;border-radius:12px;padding:22px;margin-bottom:18px}
+
+.fm-panel h3{margin-bottom:16px}.fm-panel p{color:#91a2b4;margin:8px 0}
+
+.fm-table{width:100%;border-collapse:collapse}.fm-table th,.fm-table td{padding:12px;border-bottom:1px solid #263545;text-align:left}
+
+.fm-table th{color:#91a2b4}.fm-scroll{overflow-x:auto}.fm-muted{color:#91a2b4}
+
+.fm-btn{background:#39e58c;border:0;border-radius:8px;padding:10px 15px;color:#07170e;font-weight:700;cursor:pointer}
+
+.fm-small{padding:7px 10px}.fm-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+
+.fm-stats label{margin:0}.fm-stats input{margin-top:6px}.fm-player{border-bottom:1px solid #263545;padding:16px 0}
+
+.fm-player summary{cursor:pointer;font-weight:700}.fm-player summary span{color:#39e58c}
+
+.fm-alert{background:#22382c;border:1px solid #39e58c;border-radius:8px;padding:12px;margin-bottom:14px}
+
+.fm-row{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:12px 0;flex-wrap:wrap}
+
+@media(max-width:650px){.fm-stats{grid-template-columns:repeat(2,1fr)}}
+
+
+.fm-club-heading{display:flex;align-items:center;gap:12px}
+.fm-crest{width:55px;height:62px;display:inline-flex;flex-shrink:0}
+.fm-crest svg{width:100%;height:100%}
+.fm-crest-link{display:block;color:#79e4b4;font-size:12px;margin-top:4px;text-decoration:none}
+.fm-scorers{font-size:12px;margin-top:7px}.fm-scorers p{font-size:12px!important}
+</style>
+
 </head>
-<body class="dashboard-page">
+
+<body>
 
 <div class="app-layout">
 
-    <!-- MENU BOCZNE -->
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-icon">FM</div>
-            <div>
-                <strong>{{ settings.site_name }}</strong>
-                <span>{{ settings.site_tagline }}</span>
-            </div>
-        </div>
+<aside class="sidebar">
 
-        <div class="menu-label">ZARZĄDZANIE</div>
+<div class="brand"><div class="brand-icon">FM</div><div><strong>{{ settings.site_name }}</strong><span>MANAGER 4.0</span></div></div>
 
-        <nav class="sidebar-nav">
-            <a href="#overview" class="active">◈ &nbsp; Panel główny</a>
-            <a href="#clubs">⬡ &nbsp; Moje kluby</a>
-            <a href="#players">♙ &nbsp; Zawodnicy</a>
-            <a href="#leagues">▤ &nbsp; Rozgrywki</a>
-        </nav>
+<div class="menu-label">ZARZĄDZANIE</div>
 
-        <div class="menu-label">W PRZYGOTOWANIU</div>
+<nav class="sidebar-nav">
 
-        <div class="sidebar-nav">
-            <span class="disabled-link">↗ &nbsp; Transfery <small>Wkrótce</small></span>
-            <span class="disabled-link">◷ &nbsp; Mecze <small>Wkrótce</small></span>
-            <span class="disabled-link">◉ &nbsp; Finanse <small>Wkrótce</small></span>
-        </div>
+<a href="#overview" class="active">◈ Panel główny</a>
 
-        <div class="sidebar-bottom">
-            <div class="online-dot"></div>
-            <span>Football Manager</span>
-            <small>Wersja 1.0</small>
-        </div>
-    </aside>
+<a href="#clubs">⬡ Kluby i herby</a>
 
-    <!-- GŁÓWNA ZAWARTOŚĆ -->
-    <div class="main-area">
+<a href="#players">♙ Zawodnicy</a>
 
-        <header class="topbar">
-            <div class="topbar-title">
-                <span class="breadcrumb">Football Manager / Dashboard</span>
-                <h1>Centrum zarządzania</h1>
-            </div>
+<a href="#transfers">⇄ Transfery</a>
 
-            <div class="user-area">
-                <div class="user-avatar">
-                    {{ session.username[0]|upper }}
-                </div>
-                <div class="user-details">
-                    <strong>{{ session.username }}</strong>
-                    <span>Menedżer</span>
-                </div>
+<a href="#leagues">▤ Ligi i mecze</a>
 
-                {% if is_admin %}
-                <a class="logout-btn" href="{{ url_for('admin') }}">⚙ Panel admina</a>
-                {% endif %}
+<a href="#finances">◉ Finanse</a>
 
-                <a class="logout-btn" href="{{ url_for('logout') }}">Wyloguj</a>
-            </div>
-        </header>
+</nav>
 
-        <main class="content">
-            <p id="form-feedback" class="form-feedback" role="status" aria-live="polite"></p>
+<div class="sidebar-bottom"><div class="online-dot"></div><span>Flask + SQLite</span></div>
 
-            <!-- POWITANIE -->
-            <section class="welcome-banner" id="overview">
-                <div class="welcome-content">
-                    <span class="eyebrow">CENTRUM DOWODZENIA</span>
-                    <h2>{{ settings.welcome_text }}</h2>
-                    <p>
-                        Buduj swoją piłkarską historię.
-                        Twórz kluby, zarządzaj zawodnikami
-                        i organizuj własne rozgrywki.
-                    </p>
-                    <a href="#clubs" class="primary-link">Zarządzaj klubami →</a>
-                </div>
-                <div class="banner-art">⚽</div>
-            </section>
+</aside>
 
-            <!-- STATYSTYKI -->
-            <section class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-top">
-                        <span>MOJE KLUBY</span>
-                        <span class="stat-icon">⬡</span>
-                    </div>
-                    <div class="stat-value">{{ clubs|length }}</div>
-                    <div class="stat-footer">Utworzone kluby</div>
-                </div>
+<div class="main-area">
 
-                <div class="stat-card">
-                    <div class="stat-top">
-                        <span>ZAWODNICY</span>
-                        <span class="stat-icon">♙</span>
-                    </div>
-                    <div class="stat-value">{{ players|length }}</div>
-                    <div class="stat-footer">Zawodnicy w bazie</div>
-                </div>
+<header class="topbar"><div><span class="breadcrumb">Football Manager / Dashboard</span><h1>Centrum zarządzania</h1></div>
 
-                <div class="stat-card">
-                    <div class="stat-top">
-                        <span>ROZGRYWKI</span>
-                        <span class="stat-icon">▤</span>
-                    </div>
-                    <div class="stat-value">{{ leagues|length }}</div>
-                    <div class="stat-footer">Utworzone ligi</div>
-                </div>
+<div class="user-area"><div class="user-avatar">{{ session.username[0]|upper }}</div><div class="user-details"><strong>{{ session.username }}</strong><span>Menedżer</span></div>
 
-                <div class="stat-card">
-                    <div class="stat-top">
-                        <span>STATUS</span>
-                        <span class="stat-icon">●</span>
-                    </div>
-                    <div class="stat-value status-value">AKTYWNY</div>
-                    <div class="stat-footer">Panel menedżera</div>
-                </div>
-            </section>
+{% if is_admin %}<a class="logout-btn" href="{{ url_for('admin') }}">Panel admina</a>{% endif %}
 
-            <!-- KLUBY -->
-            <section class="section-block" id="clubs">
-                <div class="section-heading">
-                    <div>
-                        <span class="section-tag">ZARZĄDZANIE</span>
-                        <h2>Moje kluby</h2>
-                        <p>Twórz i kontroluj własne drużyny.</p>
-                    </div>
-                    <span class="count-badge">{{ clubs|length }} klubów</span>
-                </div>
+<a class="logout-btn" href="{{ url_for('logout') }}">Wyloguj</a></div></header>
 
-                <div class="two-columns">
-                    <div class="content-card">
-                        <h3>Lista klubów</h3>
+<main class="content">
 
-                        {% for club in clubs %}
-                        <div class="club-row">
-                            <div class="club-logo">
-                                {{ club.name[0]|upper }}
-                            </div>
-                            <div class="club-info">
-                                <strong>{{ club.name }}</strong>
-                                <span>Klub piłkarski</span>
-                            </div>
-                            <div class="club-budget">
-                                <strong>{{ "{:,}".format(club.budget).replace(",", " ") }} zł</strong>
-                                <span>Budżet</span>
-                            </div>
-                        </div>
-                        {% else %}
-                        <div class="empty-state">
-                            <div>⚽</div>
-                            <strong>Brak klubów</strong>
-                            <p>Utwórz swój pierwszy klub piłkarski.</p>
-                        </div>
-                        {% endfor %}
-                    </div>
+{% with messages=get_flashed_messages() %}{% for message in messages %}<div class="fm-alert">{{ message }}</div>{% endfor %}{% endwith %}
 
-                    <div class="content-card">
-                        <h3>Utwórz nowy klub</h3>
-                        <p class="card-description">
-                            Nadaj nazwę swojej nowej drużynie.
-                        </p>
+<section class="welcome-banner" id="overview"><div><span class="eyebrow">CENTRUM DOWODZENIA</span><h2>{{ settings.welcome_text }}</h2><p>Zarządzaj drużynami, rozwijaj zawodników, twórz ligi i przeprowadzaj transfery.</p></div><div class="banner-art">⚽</div></section>
 
-                        <form action="{{ url_for('add_club') }}" method="POST"
-                              data-api-url="{{ url_for('api_clubs') }}">
-                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<section class="stats-grid">
 
-                            <label for="club-name">Nazwa klubu</label>
-                            <input id="club-name" type="text" name="name"
-                                   placeholder="np. FC Gdańsk" required
-                                   maxlength="80">
+<div class="stat-card"><div class="stat-top">KLUBY</div><div class="stat-value">{{ clubs|length }}</div></div>
 
-                            <button type="submit" class="primary-button">
-                                + Utwórz klub
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </section>
+<div class="stat-card"><div class="stat-top">ZAWODNICY</div><div class="stat-value">{{ players|length }}</div></div>
 
-            <!-- ZAWODNICY -->
-            <section class="section-block" id="players">
-                <div class="section-heading">
-                    <div>
-                        <span class="section-tag">KADRA</span>
-                        <h2>Zawodnicy</h2>
-                        <p>Zarządzaj piłkarzami swoich klubów.</p>
-                    </div>
-                    <span class="count-badge">{{ players|length }} zawodników</span>
-                </div>
+<div class="stat-card"><div class="stat-top">LIGI</div><div class="stat-value">{{ leagues|length }}</div></div>
 
-                <div class="content-card">
-                    <h3>Kadra zawodnicza</h3>
+<div class="stat-card"><div class="stat-top">STATUS</div><div class="stat-value status-value">AKTYWNY</div></div>
 
-                    <div class="table-scroll">
-                        <table class="players-table">
-                            <thead>
-                                <tr>
-                                    <th>ZAWODNIK</th>
-                                    <th>POZYCJA</th>
-                                    <th>WIEK</th>
-                                    <th>OCENA</th>
-                                    <th>KLUB</th>
-                                    <th>AKCJE</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for player in players %}
-                                <tr>
-                                    <td>
-                                        <div class="player-cell">
-                                            <div class="player-avatar">
-                                                {{ player.name[0]|upper }}
-                                            </div>
-                                            <strong>{{ player.name }}</strong>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="position-badge">
-                                            {{ player.position }}
-                                        </span>
-                                    </td>
-                                    <td>{{ player.age }}</td>
-                                    <td>
-                                        <span class="rating-badge">
-                                            {{ player.rating }}
-                                        </span>
-                                    </td>
-                                    <td>{{ player.club_name }}</td>
-                                    <td>
-                                        <form action="{{ url_for('delete_player', player_id=player.id) }}"
-                                              method="POST"
-                                              data-api-url="{{ url_for('api_delete_player', player_id=player.id) }}"
-                                              data-api-method="DELETE">
-                                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+</section>
 
-                                            <button type="submit" class="delete-button">
-                                                Usuń
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="6" class="table-empty">
-                                        Nie dodano jeszcze zawodników.
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+<section class="section-block" id="clubs"><div class="section-heading"><div><span class="section-tag">ZARZĄDZANIE</span><h2>Moje kluby</h2></div></div>
 
-                <div class="content-card form-card">
-                    <h3>Dodaj nowego zawodnika</h3>
+<div class="fm-grid"><div class="fm-panel"><h3>Lista klubów</h3>{% for club in clubs %}<div class="fm-row"><div>
+<div class="fm-club-heading"><span class="fm-crest" data-crest='{{ club.crest | e }}'></span><div><strong>{{ club.name }}</strong>
+<a class="fm-crest-link" href="{{ url_for('edit_crest', club_id=club.id) }}">🎨 Edytuj herb</a></div></div> <span style="color:#39e58c">OVR {{ club_overalls[club.id] }}</span>
 
-                    {% if clubs %}
-                    <form action="{{ url_for('add_player') }}" method="POST"
-                          data-api-url="{{ url_for('api_players') }}">
-                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<details><summary style="cursor:pointer">Ostatnie mecze</summary>
 
-                        <div class="form-grid">
-                            <div class="form-field">
-                                <label for="player-name">Imię i nazwisko</label>
-                                <input id="player-name" type="text" name="name"
-                                       placeholder="np. Jan Kowalski" required>
-                            </div>
 
-                            <div class="form-field">
-                                <label for="position">Pozycja</label>
-                                <select id="position" name="position" required>
-                                    <option value="">Wybierz pozycję</option>
-                                    <option value="BR">Bramkarz</option>
-                                    <option value="OB">Obrońca</option>
-                                    <option value="PO">Pomocnik</option>
-                                    <option value="NA">Napastnik</option>
-                                </select>
-                            </div>
 
-                            <div class="form-field">
-                                <label for="age">Wiek</label>
-                                <input id="age" type="number" name="age"
-                                       min="15" max="50" placeholder="np. 22" required>
-                            </div>
 
-                            <div class="form-field">
-                                <label for="club-id">Przypisz do klubu</label>
-                                <select id="club-id" name="club_id" required>
-                                    <option value="">Wybierz klub</option>
-                                    {% for club in clubs %}
-                                    <option value="{{ club.id }}">{{ club.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
 
-                        <button type="submit" class="primary-button">
-                            + Dodaj zawodnika
-                        </button>
-                    </form>
-                    {% else %}
-                    <p class="card-description">
-                        Najpierw utwórz klub, aby dodawać zawodników.
-                    </p>
-                    <a href="#clubs" class="text-link">Przejdź do klubów →</a>
-                    {% endif %}
-                </div>
-            </section>
+{% for m in last_matches[club.id] %}
 
-            <!-- LIGI -->
-            <section class="section-block" id="leagues">
-                <div class="section-heading">
-                    <div>
-                        <span class="section-tag">ROZGRYWKI</span>
-                        <h2>Moje ligi</h2>
-                        <p>Organizuj własne rozgrywki piłkarskie.</p>
-                    </div>
-                    <span class="count-badge">{{ leagues|length }} lig</span>
-                </div>
+    <p>
 
-                <div class="two-columns">
-                    <div class="content-card">
-                        <h3>Lista rozgrywek</h3>
+        {% if m.result == 'W' %}
 
-                        {% for league in leagues %}
-                        <div class="league-row">
-                            <div class="league-icon">🏆</div>
-                            <div>
-                                <strong>{{ league.name }}</strong>
-                                <span>Liga piłkarska</span>
-                            </div>
-                            <span class="league-status">Utworzona</span>
-                        </div>
-                        {% else %}
-                        <div class="empty-state">
-                            <div>🏆</div>
-                            <strong>Brak rozgrywek</strong>
-                            <p>Utwórz swoją pierwszą ligę.</p>
-                        </div>
-                        {% endfor %}
-                    </div>
+            <strong style="color: #39e58c;">{{ m.result }}</strong>
 
-                    <div class="content-card">
-                        <h3>Utwórz nową ligę</h3>
-                        <p class="card-description">
-                            Zorganizuj nowe rozgrywki.
-                        </p>
+        {% elif m.result == 'P' %}
 
-                        <form action="{{ url_for('add_league') }}" method="POST"
-                              data-api-url="{{ url_for('api_leagues') }}">
-                            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <strong style="color: #f87171;">{{ m.result }}</strong>
 
-                            <label for="league-name">Nazwa ligi</label>
-                            <input id="league-name" type="text" name="name"
-                                   placeholder="np. Ekstraklasa" required>
+        {% else %}
 
-                            <button type="submit" class="primary-button">
-                                + Utwórz ligę
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </section>
+            <strong style="color: #fbbf24;">{{ m.result }}</strong>
 
-            <footer class="footer">
-                Football Manager © 2026 · Projekt szkolny
-            </footer>
+        {% endif %}
 
-        </main>
-    </div>
+
+
+        · {{ m.opponent }} · {{ m.score }}
+
+    </p>
+
+{% else %}<p>Brak rozegranych meczów.</p>{% endfor %}</details></div>
+
+<span>{{ '{:,.0f}'.format(club.budget).replace(',', ' ') }} €</span></div>{% else %}<p>Brak klubów.</p>{% endfor %}</div>
+
+<div class="fm-panel"><h3>Dodaj klub</h3><form method="post" action="{{ url_for('add_club') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><label>Nazwa</label><input name="name" maxlength="80" required><label>Budżet (€)</label><input type="number" name="budget" min="0" value="1000000" required><button class="fm-btn">Dodaj klub</button></form></div></div></section>
+
+<section class="section-block" id="players"><div class="section-heading"><div><span class="section-tag">KADRA</span><h2>Zawodnicy i overall</h2></div></div>
+
+<div class="fm-grid"><div class="fm-panel"><h3>Kadra</h3>
+
+{% for player in players %}<details class="fm-player"><summary>{{ player.name }} — <span>OVR {{ player.rating }}</span> · {{ player.club_name }}</summary>
+
+<p>{{ player.position }} · {{ player.age }} lat</p>
+<p>⚽ Gole: {{ player.goals }} · 🎯 Asysty: {{ player.assists }} · 👕 Mecze: {{ player.appearances }}</p>
+
+<form method="post" action="{{ url_for('update_player_stats', player_id=player.id) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><div class="fm-stats">
+
+{% for field, title in [('pace','Tempo'),('shooting','Strzały'),('passing','Podania'),('dribbling','Drybling'),('defending','Obrona'),('physical','Fizyczność')] %}<label>{{ title }}<input type="number" name="{{ field }}" min="1" max="99" value="{{ player[field] }}" required></label>{% endfor %}
+
+</div><button class="fm-btn fm-small">Przelicz overall</button></form>
+
+<form method="post" action="{{ url_for('train_player', player_id=player.id) }}" style="margin-top:10px">
+
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+<button class="fm-btn fm-small" type="submit">Trenuj zawodnika (+1 do +3)</button>
+
+</form></details>{% else %}<p>Nie masz jeszcze zawodników.</p>{% endfor %}</div>
+
+<div class="fm-panel"><h3>Dodaj zawodnika</h3><form method="post" action="{{ url_for('add_player') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><label>Imię i nazwisko</label><input name="name" maxlength="80" required><label>Wiek</label><input type="number" name="age" min="15" max="50" required><label>Pozycja</label><select name="position"><option>Bramkarz</option><option>Obrońca</option><option>Pomocnik</option><option>Napastnik</option></select><label>Klub</label><select name="club_id" required>{% for club in clubs %}<option value="{{ club.id }}">{{ club.name }}</option>{% endfor %}</select><button class="fm-btn" {% if not clubs %}disabled{% endif %}>Dodaj zawodnika</button></form></div></div></section>
+
+<section class="section-block" id="transfers"><div class="section-heading"><div><span class="section-tag">RYNEK</span><h2>Transfery</h2></div></div><div class="fm-panel"><h3>Przeprowadź transfer</h3><form method="post" action="{{ url_for('make_transfer') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><label>Zawodnik</label><select name="player_id" required>{% for player in players %}<option value="{{ player.id }}">{{ player.name }} ({{ player.club_name }})</option>{% endfor %}</select><label>Klub docelowy</label><select name="to_club_id" required>{% for club in clubs %}<option value="{{ club.id }}">{{ club.name }}</option>{% endfor %}</select><label>Kwota (€)</label><input name="price" type="number" min="0" value="0" required><button class="fm-btn" {% if not players or clubs|length < 2 %}disabled{% endif %}>Wykonaj transfer</button></form><p>Kwota zostanie odjęta od budżetu kupującego i dodana sprzedającemu.</p></div></section>
+
+<section class="section-block" id="leagues"><div class="section-heading"><div><span class="section-tag">ROZGRYWKI</span><h2>Ligi i mecze</h2></div></div><div class="fm-grid">
+
+<div class="fm-panel"><h3>Utwórz ligę</h3><form method="post" action="{{ url_for('add_league') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><label>Nazwa ligi</label><input name="name" required maxlength="80"><button class="fm-btn">Utwórz ligę</button></form></div>
+
+<div class="fm-panel"><h3>Dodaj klub do ligi</h3><form method="post" action="{{ url_for('league_add_team') }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><label>Liga</label><select name="league_id" required>{% for league in leagues %}<option value="{{ league.id }}">{{ league.name }}</option>{% endfor %}</select><label>Klub</label><select name="club_id" required>{% for club in clubs %}<option value="{{ club.id }}">{{ club.name }}</option>{% endfor %}</select><button class="fm-btn" {% if not clubs or not leagues %}disabled{% endif %}>Przypisz klub</button></form></div></div>
+
+{% for league in leagues %}<div class="fm-panel"><div class="fm-row"><h3>{{ league.name }}</h3><form method="post" action="{{ url_for('generate_schedule', league_id=league.id) }}"><input type="hidden" name="_csrf_token" value="{{ csrf_token() }}"><button class="fm-btn fm-small">Generuj terminarz</button></form></div><p>Tabela jest aktualizowana na podstawie rozegranych meczów.</p><button type="button" class="fm-btn fm-small" data-league-id="{{ league.id }}" onclick="loadLeague(Number(this.dataset.leagueId))">Pokaż tabelę</button><div class="fm-scroll" id="league-table-{{ league.id }}"></div>
+
+<h3 style="margin-top:25px">Terminarz i wyniki</h3>
+
+<div class="fm-scroll">
+
+<table class="fm-table">
+
+<thead><tr><th>Kolejka</th><th>Gospodarze</th><th>Wynik</th><th>Goście</th><th>Akcja</th></tr></thead>
+
+<tbody>
+
+{% for match in matches if match.league_id == league.id %}
+
+<tr>
+
+<td>{{ match.round }}</td>
+
+<td>{{ match.home_name }}</td>
+
+<td>{% if match.played %}<strong>{{ match.home_score }} : {{ match.away_score }}</strong>{% else %}– : –{% endif %}</td>
+
+<td>{{ match.away_name }}
+{% if match.played and match_events[match.id] %}
+<details class="fm-scorers"><summary>⚽ Strzelcy i asysty</summary>
+{% for event in match_events[match.id] %}
+<p>{{ event.minute }}' · {{ event.scorer or 'Gol bez przypisanego strzelca' }}{% if event.assister %} (asysta: {{ event.assister }}){% endif %}</p>
+{% endfor %}
+</details>{% endif %}</td>
+
+<td>
+
+{% if match.played %}Rozegrany{% else %}
+
+<form method="post" action="{{ url_for('simulate_match', match_id=match.id) }}">
+
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+<button type="submit" class="fm-btn fm-small">Symuluj mecz</button>
+
+</form>
+
+{% endif %}
+
+</td>
+
+</tr>
+
+{% else %}
+
+<tr><td colspan="5" class="fm-muted">Brak spotkań. Najpierw wygeneruj terminarz.</td></tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
 </div>
 
-<script src="{{ url_for('static', filename='app.js') }}" defer></script>
+</div>{% else %}<div class="fm-panel"><p>Nie utworzono jeszcze żadnej ligi.</p></div>{% endfor %}
+
+</section>
+
+<section class="section-block" id="finances"><div class="section-heading"><div><span class="section-tag">BUDŻET</span><h2>Finanse</h2></div></div><div class="fm-panel"><label>Wybierz klub</label><select id="finance-club">{% for club in clubs %}<option value="{{ club.id }}">{{ club.name }}</option>{% endfor %}</select><button class="fm-btn fm-small" onclick="loadFinances()">Pokaż finanse</button><div id="finance-result" class="fm-scroll"></div></div></section>
+
+<footer class="footer">Football Manager © 2026 · Flask + SQLite</footer>
+
+</main></div></div>
+
+<script>
+
+function safeText(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+async function loadLeague(id){const target=document.getElementById('league-table-'+id);target.textContent='Ładowanie...';try{const response=await fetch('/league/'+id+'/table');if(!response.ok)throw Error('Nie udało się pobrać tabeli');const rows=await response.json();target.innerHTML='<table class="fm-table"><thead><tr><th>Klub</th><th>M</th><th>W</th><th>R</th><th>P</th><th>Bramki</th><th>Pkt</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+safeText(r.club)+'</td><td>'+r.played+'</td><td>'+r.wins+'</td><td>'+r.draws+'</td><td>'+r.losses+'</td><td>'+r.goals_for+':'+r.goals_against+'</td><td><strong>'+r.points+'</strong></td></tr>').join('')+'</tbody></table>';}catch(e){target.textContent=e.message;}}
+
+async function loadFinances(){const id=document.getElementById('finance-club').value;const target=document.getElementById('finance-result');if(!id){target.textContent='Najpierw dodaj klub.';return;}target.textContent='Ładowanie...';try{const response=await fetch('/club/'+id+'/finances');if(!response.ok)throw Error('Nie udało się pobrać finansów');const d=await response.json();target.innerHTML='<h3>Budżet: '+Number(d.budget).toLocaleString('pl-PL')+' €</h3><table class="fm-table"><thead><tr><th>Data</th><th>Operacja</th><th>Kwota</th></tr></thead><tbody>'+d.history.map(r=>'<tr><td>'+safeText(r.created_at)+'</td><td>'+safeText(r.description)+'</td><td>'+(r.transaction_type==='income'?'+':'−')+Number(r.amount).toLocaleString('pl-PL')+' €</td></tr>').join('')+'</tbody></table>';}catch(e){target.textContent=e.message;}}
+
+</script>
+
+<script src="{{ url_for('static', filename='crest-editor.js') }}"></script>
 </body>
+
 </html>

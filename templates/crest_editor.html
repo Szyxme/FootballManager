@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pl">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width,initial-scale=1" name="viewport"/>
+  <title>
+   Edytor herbu · {{ club.name }}
+  </title>
+  <style>
+    :root {
+        color-scheme: dark;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: #0b1119;
+        color: #edf3f8;
+        font-family: Segoe UI,Arial,sans-serif;
+    }
+
+    main {
+        max-width: 1050px;
+        margin: auto;
+        padding: 32px 18px;
+    }
+
+    a {
+        color: #8ce5b7;
+    }
+
+    h1 {
+        margin: 8px 0 22px;
+    }
+
+    .layout {
+        display: grid;
+        grid-template-columns: minmax(260px,1fr) minmax(260px,1fr);
+        gap: 20px;
+    }
+
+    .panel {
+        background: #172330;
+        border: 1px solid #304050;
+        border-radius: 18px;
+        padding: 22px;
+    }
+
+    .preview {
+        display: grid;
+        place-items: center;
+        min-height: 300px;
+        background: #101923;
+        border-radius: 14px;
+    }
+
+    #crest-preview {
+        width: 230px;
+        height: 250px;
+    }
+
+    label {
+        display: block;
+        margin: 15px 0 7px;
+        color: #b4c6d5;
+        font-weight: 600;
+    }
+
+    select,input {
+        width: 100%;
+        background: #0d1721;
+        color: white;
+        border: 1px solid #405768;
+        padding: 12px;
+        border-radius: 9px;
+    }
+
+    .swatches {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .swatches button {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 2px solid #b2c0c9;
+        cursor: pointer;
+    }
+
+    button.save {
+        background: #43d99a;
+        color: #092015;
+        border: 0;
+        border-radius: 10px;
+        padding: 14px 20px;
+        font-weight: 800;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    small {
+        color: #a0b0c0;
+    }
+
+    @media(max-width:720px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+
+    }
+  </style>
+ </head>
+ <body>
+  <main>
+   <a href="{{ url_for('index') }}#clubs">
+    ← Powrót do klubów
+   </a>
+   <h1>
+    🎨 Kreator herbu: {{ club.name }}
+   </h1>
+   <div class="layout">
+    <section class="panel">
+     <h2>
+      Elementy herbu
+     </h2>
+     <label for="shape">
+      Obramowanie / kształt
+     </label>
+     <select id="shape">
+      <option value="shield">
+       Klasyczna tarcza
+      </option>
+      <option value="round">
+       Zaokrąglona tarcza
+      </option>
+      <option value="circle">
+       Okrągły herb
+      </option>
+      <option value="hex">
+       Sześciokąt
+      </option>
+     </select>
+     <label for="color">
+      Kolor główny
+     </label>
+     <input id="color" type="color"/>
+     <div class="swatches" data-for="color">
+      <button aria-label="Niebieski" data-color="#1765d1" style="background:#1765d1" type="button">
+      </button>
+      <button aria-label="Czerwony" data-color="#c62828" style="background:#c62828" type="button">
+      </button>
+      <button aria-label="Zielony" data-color="#178654" style="background:#178654" type="button">
+      </button>
+      <button aria-label="Fioletowy" data-color="#7b3fc4" style="background:#7b3fc4" type="button">
+      </button>
+      <button aria-label="Granatowy" data-color="#1e293b" style="background:#1e293b" type="button">
+      </button>
+     </div>
+     <label for="accent">
+      Kolor obramowania i dodatków
+     </label>
+     <input id="accent" type="color"/>
+     <div class="swatches" data-for="accent">
+      <button aria-label="Złoty" data-color="#f7c948" style="background:#f7c948" type="button">
+      </button>
+      <button aria-label="Biały" data-color="#ffffff" style="background:#ffffff" type="button">
+      </button>
+      <button aria-label="Czerwony" data-color="#ef4444" style="background:#ef4444" type="button">
+      </button>
+      <button aria-label="Czarny" data-color="#111827" style="background:#111827" type="button">
+      </button>
+     </div>
+     <label for="symbol">
+      Symbol
+     </label>
+     <select id="symbol">
+      <option value="ball">
+       Piłka
+      </option>
+      <option value="star">
+       Gwiazda
+      </option>
+      <option value="crown">
+       Korona
+      </option>
+      <option value="letters">
+       Inicjały
+      </option>
+      <option value="stripes">
+       Pasy
+      </option>
+     </select>
+     <label for="initials">
+      Inicjały klubu (maks. 3 znaki)
+     </label>
+     <input id="initials" maxlength="3" pattern="[A-Za-z0-9ĄĆĘŁŃÓŚŹŻąćęłńóśźż]{0,3}"/>
+    </section>
+    <section class="panel">
+     <h2>
+      Podgląd na żywo
+     </h2>
+     <div class="preview" id="crest-preview">
+     </div>
+     <small>
+      Herb zapisze się w bazie SQLite i pojawi przy Twoim klubie.
+     </small>
+     <form id="crest-form" method="post">
+      <input name="_csrf_token" type="hidden" value="{{ csrf_token() }}"/>
+      <input id="crest-json" name="crest" type="hidden"/>
+      <button class="save" type="submit">
+       Zapisz herb
+      </button>
+     </form>
+    </section>
+   </div>
+  </main>
+  <script id="crest-initial" type="application/json">
+   {{ crest | tojson }}
+  </script>
+  <script src="{{ url_for('static', filename='crest-editor.js') }}">
+  </script>
+ </body>
+</html>
+
