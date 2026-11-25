@@ -37,6 +37,17 @@
 .fm-row{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:12px 0;flex-wrap:wrap}
 
 @media(max-width:650px){.fm-stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.openliga-match{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px}.openliga-state{grid-column:1/-1;text-align:right}}
+
+.openliga-controls{display:flex;align-items:end;gap:12px;flex-wrap:wrap}
+.openliga-controls label{min-width:220px}
+.openliga-controls select{margin-top:7px}
+.openliga-status{color:#91a2b4;margin:14px 0}
+.openliga-match{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid #263545}
+.openliga-match:last-child{border-bottom:0}
+.openliga-team:last-of-type{text-align:right}
+.openliga-score{font-weight:800;color:#39e58c;white-space:nowrap}
+.openliga-state{color:#91a2b4;font-size:12px;white-space:nowrap}
 
 
 .fm-club-heading{display:flex;align-items:center;gap:12px}
@@ -69,6 +80,8 @@
 <a href="#transfers">⇄ Transfery</a>
 
 <a href="#leagues">▤ Ligi i mecze</a>
+
+<a href="#external-matches">🌐 Tabele UCL EUL</a>
 
 <a href="{{ url_for('cups.index') }}">🏆 Turnieje</a>
 
@@ -106,6 +119,25 @@
 
 <div class="stat-card"><div class="stat-top">STATUS</div><div class="stat-value status-value">AKTYWNY</div></div>
 
+</section>
+
+<section class="section-block" id="external-matches">
+<div class="section-heading"><div><span class="section-tag">DANE ZEWNĘTRZNE</span><h2>Wyniki z OpenLigaDB</h2></div></div>
+<div class="fm-panel">
+<p>Aktualne mecze Ligi Mistrzów UEFA i Ligi Europy UEFA pobierane bezpośrednio z publicznego API OpenLigaDB.</p>
+<div class="openliga-controls">
+<label for="openliga-league">Wybierz ligę
+<select id="openliga-league">
+<option value="ucl">Liga Mistrzów UEFA</option>
+<option value="uel">Liga Europy UEFA</option>
+</select>
+</label>
+<button id="openliga-load" class="fm-btn" type="button">Pobierz wyniki</button>
+</div>
+<p id="openliga-status" class="openliga-status" role="status" aria-live="polite">Ładowanie danych z OpenLigaDB...</p>
+<div id="openliga-matches"></div>
+<small>Dane: <a href="https://www.openligadb.de/" target="_blank" rel="noopener noreferrer">OpenLigaDB</a> (licencja ODbL 1.0).</small>
+</div>
 </section>
 
 <section class="section-block" id="clubs"><div class="section-heading"><div><span class="section-tag">ZARZĄDZANIE</span><h2>Moje kluby</h2></div></div>
@@ -264,6 +296,7 @@ async function loadFinances(){const id=document.getElementById('finance-club').v
 </script>
 
 <script src="{{ url_for('static', filename='crest-editor.js') }}"></script>
+<script src="{{ url_for('static', filename='openligadb.js') }}" defer></script>
 </body>
 
 </html>

@@ -22,7 +22,20 @@ Projekt szkolny – aplikacja internetowa do zarządzania klubami piłkarskimi, 
 - Transfery, budżety klubów i finanse
 - Trening i rozwijanie statystyk zawodników
 - Kreator herbów: kształty, kolory, symbole i inicjały
+- Pobieranie terminarza i wyników Ligi Mistrzów UEFA oraz Ligi Europy UEFA z OpenLigaDB
 - Panel administratora
+
+## Zewnętrzne API
+
+Dashboard pobiera aktualną kolejkę i mecze z publicznego API
+[OpenLigaDB](https://api.openligadb.de/index.html) (Liga Mistrzów UEFA i Liga
+Europy UEFA). Integrację obsługuje `static/openligadb.js`; nie wymaga klucza API.
+Do wyświetlania danych potrzebne jest połączenie z internetem. Zapytania są
+wykonywane przy otwarciu strony i po kliknięciu „Pobierz wyniki”, bez
+automatycznego odpytywania API. Dokumentacja OpenLigaDB podaje limit
+60 zapytań na minutę na adres IP, dlatego nie stosujemy automatycznego
+pollingu. Źródło danych jest wskazane w dashboardzie; dane OpenLigaDB są
+udostępniane na licencji ODbL 1.0.
 
 ## Wymagania
 
