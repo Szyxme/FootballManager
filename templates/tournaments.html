@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Football Manager | Turnieje</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='tournaments.css') }}">
+</head>
+<body>
+<main>
+    <a href="{{ url_for('index') }}">← Wróć do panelu</a>
+    <h1>🏆 Turnieje pucharowe</h1>
+    {% for message in get_flashed_messages() %}<p>{{ message }}</p>{% endfor %}
+    <section>
+        <h2>Nowy turniej</h2>
+        <form method="post">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <input name="name" placeholder="Nazwa turnieju" maxlength="100" required>
+            <p>Wybierz 4, 8, 16 lub 32 kluby.</p>
+            <div class="clubs">
+                {% for club in clubs %}
+                <label><input type="checkbox" name="clubs" value="{{ club.id }}"> {{ club.name }}</label>
+                {% endfor %}
+            </div>
+            <button>Utwórz i wylosuj pary</button>
+        </form>
+    </section>
+    {% for cup in cups %}
+    <section>
+        <h2>{{ cup.name }}</h2>
+        {% if cup.winner %}<p class="winner">🏆 Mistrz: {{ cup.winner }}</p>{% endif %}
+        <div class="bracket">
+            {% for stage, matches in brackets[cup.id].items() %}
+            <div class="round">
+                <h3>{{ {1:'Finał',2:'Półfinał',4:'Ćwierćfinał',8:'1/8 finału',16:'1/16 finału'}.get(matches|length, 'Runda') }}</h3>
+                {% for m in matches %}
+                <article>
+                    <div class="team {{ 'winner' if m.winner_id == m.home_id else '' }}">{{ m.home }} <b>{{ m.home_score if m.home_score is not none else '–' }}</b></div>
+                    <div class="team {{ 'winner' if m.winner_id == m.away_id else '' }}">{{ m.away }} <b>{{ m.away_score if m.away_score is not none else '–' }}</b></div>
+                    {% if m.penalties %}<small>Karne: {{ m.penalties }}</small>{% endif %}
+                    {% if m.winner_id is none %}
+                    <form method="post" action="{{ url_for('cups.simulate', mid=m.id) }}">
+                        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                        <button>Symuluj mecz</button>
+                    </form>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endfor %}
+</main>
+</body>
+</html>

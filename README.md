@@ -122,3 +122,7 @@ FootballManager/
 
 Projekt edukacyjny rozwijany w ramach nauki programowania.
 PROJEKT JEST JESZCZE WE WCZESNEJ FAZIE I BĘDZIE JESZCZE ROZBUDOWYWANY!
+
+## Turnieje pucharowe
+
+Uruchom `python -m pip install -r requirements.txt`, następnie `python database.py` i `python app.py`. Otwórz http://127.0.0.1:5000/ i wybierz Turnieje. Utwórz 4, 8, 16 lub 32 kluby, wybierz uczestników i symuluj mecze. Kolejna runda powstaje automatycznie po zakończeniu poprzedniej. Turnieje mają oddzielne wyniki od lig.

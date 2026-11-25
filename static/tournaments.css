@@ -1,0 +1,13 @@
+* { box-sizing: border-box; }
+body { margin: 0; background: #101923; color: #edf3f8; font: 16px Arial, sans-serif; }
+main { max-width: 1200px; margin: auto; padding: 24px; }
+a { color: #8ce5b7; }
+section { background: #172330; border: 1px solid #304050; border-radius: 12px; padding: 20px; margin: 20px 0; }
+.clubs { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 15px 0; }
+input[name=name] { padding: 12px; width: 100%; max-width: 400px; border-radius: 6px; border: 1px solid #526171; background: #101923; color: white; }
+button { background: #43d99a; color: #092015; border: 0; border-radius: 7px; padding: 10px 14px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+.bracket { display: flex; gap: 20px; overflow-x: auto; align-items: stretch; }
+.round { min-width: 210px; flex: 1; display: flex; flex-direction: column; justify-content: space-around; gap: 12px; }
+article { background: #101923; border: 1px solid #304050; border-radius: 8px; padding: 12px; }
+.team { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; }
+.winner { color: #8ce5b7; font-weight: bold; }

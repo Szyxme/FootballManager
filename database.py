@@ -223,6 +223,27 @@ def create_tables():
               AND played = 0
         """)
 
+        db.executescript("""
+CREATE TABLE IF NOT EXISTS tournaments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    name TEXT NOT NULL,
+    winner_id INTEGER REFERENCES clubs(id)
+);
+CREATE TABLE IF NOT EXISTS tournament_matches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tournament_id INTEGER NOT NULL REFERENCES tournaments(id) ON DELETE CASCADE,
+    stage INTEGER NOT NULL,
+    slot INTEGER NOT NULL,
+    home_id INTEGER NOT NULL REFERENCES clubs(id),
+    away_id INTEGER NOT NULL REFERENCES clubs(id),
+    home_score INTEGER,
+    away_score INTEGER,
+    winner_id INTEGER REFERENCES clubs(id),
+    penalties TEXT,
+    UNIQUE(tournament_id, stage, slot)
+);
+""")
         db.commit()
 
     except Exception:

@@ -1396,6 +1396,9 @@ def edit_crest(club_id):
         db.close()
 
 
+from tournaments import bp as tournaments_bp
+app.register_blueprint(tournaments_bp)
+
 # URUCHOMIENIE APLIKACJI
 
 if __name__ == "__main__":
